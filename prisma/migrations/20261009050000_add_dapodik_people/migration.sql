@@ -36,13 +36,14 @@ CREATE TABLE "ImportedTeacher" (
   CONSTRAINT "ImportedTeacher_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "Student_schoolId_nisn_key" ON "Student"("schoolId","nisn");
 CREATE INDEX "Student_schoolId_schoolClassId_idx" ON "Student"("schoolId","schoolClassId");
 CREATE INDEX "Student_schoolId_name_idx" ON "Student"("schoolId","name");
 CREATE INDEX "Student_schoolId_nik_idx" ON "Student"("schoolId","nik");
-CREATE UNIQUE INDEX "ImportedTeacher_schoolId_nuptk_key" ON "ImportedTeacher"("schoolId","nuptk");
 CREATE INDEX "ImportedTeacher_schoolId_name_idx" ON "ImportedTeacher"("schoolId","name");
 
 ALTER TABLE "Student" ADD CONSTRAINT "Student_schoolId_fkey" FOREIGN KEY ("schoolId") REFERENCES "School"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "Student" ADD CONSTRAINT "Student_schoolClassId_fkey" FOREIGN KEY ("schoolClassId") REFERENCES "SchoolClass"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "ImportedTeacher" ADD CONSTRAINT "ImportedTeacher_schoolId_fkey" FOREIGN KEY ("schoolId") REFERENCES "School"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+CREATE UNIQUE INDEX "Student_schoolId_nisn_not_null_key" ON "Student"("schoolId","nisn") WHERE "nisn" IS NOT NULL;
+CREATE UNIQUE INDEX "ImportedTeacher_schoolId_nuptk_not_null_key" ON "ImportedTeacher"("schoolId","nuptk") WHERE "nuptk" IS NOT NULL;
