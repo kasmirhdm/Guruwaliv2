@@ -1,4 +1,5 @@
 "use client";
+import "../auth.css";
 import { useState } from "react";
 import { UserRound, Mail, Lock, School, ArrowRight, CheckCircle2 } from "lucide-react";
 
