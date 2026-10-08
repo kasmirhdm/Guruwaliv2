@@ -1,0 +1,8 @@
+"use client";
+import {useEffect,useState} from "react";
+import Link from "next/link";
+import {ArrowLeft,Users,Mail,Calendar} from "lucide-react";
+import "../school-admin.css";
+export default function GuruPage(){const [rows,setRows]=useState<any[]>([]);const [err,setErr]=useState("");
+useEffect(()=>{fetch("/api/school-admin/guru").then(async r=>{const x=await r.json();if(r.ok)setRows(x);else setErr(x.error||"Gagal memuat.")})},[]);
+return <main className="saContent" style={{minHeight:"100vh"}}><header><Link href="/school-admin" style={{color:"#15916c",fontSize:12,textDecoration:"none"}}><ArrowLeft size={14}/> Dashboard Sekolah</Link><p className="eyebrow">DATA SEKOLAH</p><h1>Guru Aktif</h1><p className="muted">Daftar guru yang sudah disetujui menjadi anggota sekolah.</p></header><section className="saCard" style={{maxWidth:1050,margin:"22px auto"}}>{err&&<p>{err}</p>}{rows.map(x=><div key={x.id} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 0",borderBottom:"1px solid #edf1f1"}}><div className="avatar" style={{width:38,height:38,borderRadius:10,background:"#eaf8f3",display:"grid",placeItems:"center",color:"#15916c"}}><Users size={17}/></div><div style={{flex:1}}><b style={{display:"block",fontSize:13}}>{x.user.name}</b><span style={{fontSize:10,color:"#899597"}}><Mail size={11}/> {x.user.email}</span></div><span style={{fontSize:10,color:"#899597"}}><Calendar size={12}/> Bergabung {x.joinedAt?new Date(x.joinedAt).toLocaleDateString("id-ID"):"-"}</span></div>)}{!rows.length&&!err&&<p style={{fontSize:11,color:"#899597"}}>Belum ada guru aktif.</p>}</section></main>}
