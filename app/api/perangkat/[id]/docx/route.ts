@@ -22,7 +22,7 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}
       children.push(...String(value).split(/\\n+/).map(x=>new Paragraph({text:x.trim()})));
     }
     const doc=new Document({sections:[{properties:{},children}]});
-    const buffer=await Packer.toBuffer(doc);
+    children.push(new Paragraph({text:" "}));\n    children.push(new Paragraph({text:"Mengetahui,",alignment:2}));\n    children.push(new Paragraph({text:school?.name||"Nama Sekolah",alignment:2}));\n    children.push(new Paragraph({text:"Kepala Sekolah",alignment:2}));\n    children.push(new Paragraph({text:"\n\n\n"+(school?.principalName||"________________________"),alignment:2}));\n    if(school?.principalNip)children.push(new Paragraph({text:"NIP. "+school.principalNip,alignment:2}));\n    const doc=new Document({sections:[{properties:{},children}]});\n    const buffer=await Packer.toBuffer(doc);
     const filename=device.title.replace(/[^a-zA-Z0-9_-]+/g,"-")+".docx";
     return new NextResponse(buffer,{status:200,headers:{
       "Content-Type":"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
