@@ -4,7 +4,7 @@ import {useEffect,useState} from "react";
 import Link from "next/link";
 import {ArrowLeft,BookOpen,FileText,Save,ChevronRight,Target,Route,Layers} from "lucide-react";
 const types=[["MODUL_AJAR","Modul Ajar"],["LKPD","LKPD"],["BAHAN_AJAR","Bahan Ajar"],["ASESMEN","Asesmen"],["KISI_KISI","Kisi-Kisi"],["PROGRAM_SEMESTER","Program Semester"],["PROGRAM_TAHUNAN","Program Tahunan"]];
-const api:any={curricula:"/api/master-kurikulum/curricula",phases:"/api/master-kurikulum/phases",outcomes:"/api/master-kurikulum/outcomes",objectives:"/api/master-kurikulum/objectives",sequences:"/api/master-kurikulum/sequences",materials:"/api/master-kurikulum/materials"};
+const api:any={curricula:"/api/master-kurikulum/curricula",subjects:"/api/master-kurikulum/subjects",phases:"/api/master-kurikulum/phases",outcomes:"/api/master-kurikulum/outcomes",objectives:"/api/master-kurikulum/objectives",sequences:"/api/master-kurikulum/sequences",materials:"/api/master-kurikulum/materials"};
 const moduleFields=[["namaGuru","Nama Guru","Nama guru penyusun modul."],["nipGuru","NIP Guru","Opsional, jika digunakan pada dokumen resmi."],["fase","Fase","Contoh: D."],["semester","Semester","Contoh: Ganjil."],["alokasiWaktu","Alokasi Waktu","Contoh: 2 JP (80 menit)."],["tempatTanggal","Tempat, Tanggal","Tempat dan tanggal penandatanganan."],["cp","Capaian Pembelajaran (CP)","Ringkasan CP yang dipilih dari Master Kurikulum."],["tp","Tujuan Pembelajaran (TP)","Tujuan pembelajaran yang digunakan."],["atp","Alur Tujuan Pembelajaran (ATP)","Alur tujuan pembelajaran."],["materi","Materi Pembelajaran","Materi pokok yang dipelajari."],["kompetensiAwal","Kompetensi Awal","Kemampuan/prasyarat yang perlu dimiliki peserta didik."],["profilPelajarPancasila","Profil Pelajar Pancasila","Dimensi/profil yang dikembangkan."],["saranaPrasarana","Sarana dan Prasarana","Media, alat, dan sumber belajar."],["modelPembelajaran","Model Pembelajaran","Contoh: PBL, PjBL, Discovery Learning."],["pemahamanBermakna","Pemahaman Bermakna","Pemahaman utama yang diharapkan terbentuk."],["pertanyaanPemantik","Pertanyaan Pemantik","Pertanyaan awal untuk mengarahkan pembelajaran."],["kegiatanPendahuluan","Kegiatan Pendahuluan","Kegiatan pembuka dan apersepsi."],["kegiatanInti","Kegiatan Inti","Langkah pembelajaran utama."],["kegiatanPenutup","Kegiatan Penutup","Refleksi, simpulan, dan tindak lanjut."],["asesmen","Asesmen","Asesmen diagnostik, formatif, dan sumatif."],["remedialPengayaan","Remedial dan Pengayaan","Tindak lanjut bagi peserta didik."],["refleksiGuru","Refleksi Guru","Catatan refleksi setelah pembelajaran."]];
 export default function PerangkatPage(){
  const [type,setType]=useState("MODUL_AJAR");const [refs,setRefs]=useState<any>({});const [saving,setSaving]=useState(false);const [message,setMessage]=useState("");
@@ -12,9 +12,11 @@ export default function PerangkatPage(){
  useEffect(()=>{Promise.all(Object.entries(api).map(async([k,u])=>[k,await fetch(u).then(r=>r.ok?r.json():[])] )).then(x=>setRefs(Object.fromEntries(x as any))).catch(()=>{})},[]);
 
  const filteredPhases=(refs.phases||[]).filter((x:any)=>!form.curriculumId||x.curriculumId===form.curriculumId);
+ const filteredSubjects=(refs.subjects||[]).filter((x:any)=>x.isActive!==false);
  const filteredCP=(refs.outcomes||[]).filter((x:any)=>
    (!form.phaseId||x.phaseId===form.phaseId) &&
-   (!form.curriculumId||x.curriculumId===form.curriculumId)
+   (!form.curriculumId||x.curriculumId===form.curriculumId) &&
+   (!form.subjectId||x.masterSubjectId===form.subjectId)
  );
  const filteredTP=(refs.objectives||[]).filter((x:any)=>!form.outcomeId||x.outcomeId===form.outcomeId);
  const filteredATP=(refs.sequences||[]).filter((x:any)=>!form.objectiveId||x.objectiveId===form.objectiveId);
@@ -22,10 +24,12 @@ export default function PerangkatPage(){
  const choose=(key:string,v:string)=>{
    const next:any={[key]:v};
    if(key==="curriculumId"){next.phaseId="";next.outcomeId="";next.objectiveId="";next.sequenceId="";next.materialId=""}
-   if(key==="phaseId"){next.outcomeId="";next.objectiveId="";next.sequenceId="";next.materialId=""}
+   if(key==="subjectId"){next.outcomeId="";next.objectiveId="";next.sequenceId="";next.materialId=""}
+   if(key==="phaseId"){next.subjectId="";next.outcomeId="";next.objectiveId="";next.sequenceId="";next.materialId=""}
    if(key==="outcomeId"){next.objectiveId="";next.sequenceId="";next.materialId=""}
    if(key==="objectiveId"){next.sequenceId="";next.materialId=""}
    if(key==="sequenceId"){next.materialId=""}
+   if(key==="subjectId"){const subject=(refs.subjects||[]).find((x:any)=>x.id===v); if(subject) next.subjectName=subject.name}
    setForm((f:any)=>({...f,...next}));
  };
  const set=(k:string,v:any)=>setForm((f:any)=>({...f,[k]:v}));const setContent=(k:string,v:string)=>setForm((f:any)=>({...f,content:{...(f.content||{}),[k]:v}}));
@@ -36,7 +40,7 @@ export default function PerangkatPage(){
  <section className="paCard"><h2>Identitas Perangkat</h2><div className="formGrid"><label>Judul Perangkat<input value={form.title} onChange={e=>set("title",e.target.value)} placeholder="Contoh: Modul Ajar Persamaan Kuadrat"/></label><label>Mata Pelajaran<input value={form.subjectName} onChange={e=>set("subjectName",e.target.value)} placeholder="Matematika"/></label><label>Kelas<input value={form.className} onChange={e=>set("className",e.target.value)} placeholder="IX"/></label><label>Tahun Ajaran<input value={form.academicYear} onChange={e=>set("academicYear",e.target.value)}/></label></div></section>
  <section className="paCard"><div className="paHead"><div><h2>Referensi Master Kurikulum</h2><p className="muted">Pilih CP, TP, ATP, dan Materi yang menjadi dasar perangkat.</p></div><span className="masterPill">MASTER PLATFORM ⭐</span></div><div className="formGrid">
  <label>Kurikulum<select value={form.curriculumId||""} onChange={e=>choose("curriculumId",e.target.value)}><option value="">Pilih Kurikulum</option>{(refs.curricula||[]).map((x:any)=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
- <label>Fase<select value={form.phaseId||""} disabled={!form.curriculumId} onChange={e=>choose("phaseId",e.target.value)}><option value="">{form.curriculumId?"Pilih Fase":"Pilih Kurikulum dahulu"}</option>{filteredPhases.map((x:any)=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+ <label>Fase<select value={form.phaseId||""} disabled={!form.curriculumId} onChange={e=>choose("phaseId",e.target.value)}><option value="">{form.curriculumId?"Pilih Fase":"Pilih Kurikulum dahulu"}</option>{filteredPhases.map((x:any)=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>\n <label>Mata Pelajaran<select value={form.subjectId||""} disabled={!form.phaseId} onChange={e=>choose("subjectId",e.target.value)}><option value="">{form.phaseId?"Pilih Mata Pelajaran":"Pilih Fase dahulu"}</option>{filteredSubjects.map((x:any)=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
  <label>CP Master<select value={form.outcomeId||""} disabled={!form.phaseId} onChange={e=>choose("outcomeId",e.target.value)}><option value="">{form.phaseId?"Pilih CP":"Pilih Fase dahulu"}</option>{filteredCP.map((x:any)=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
  <label>TP<select value={form.objectiveId||""} disabled={!form.outcomeId} onChange={e=>choose("objectiveId",e.target.value)}><option value="">{form.outcomeId?"Pilih TP":"Pilih CP dahulu"}</option>{filteredTP.map((x:any)=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
  <label>ATP<select value={form.sequenceId||""} disabled={!form.objectiveId} onChange={e=>choose("sequenceId",e.target.value)}><option value="">{form.objectiveId?"Pilih ATP":"Pilih TP dahulu"}</option>{filteredATP.map((x:any)=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
