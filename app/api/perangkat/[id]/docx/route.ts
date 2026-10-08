@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Document, Packer, Paragraph, HeadingLevel, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } from "docx";
 import { prisma } from "@/lib/prisma";
+import { requireDeviceAccess } from "@/lib/device-access";
 const labels: Record<string,string>={kompetensiAwal:"Kompetensi Awal",profilPelajarPancasila:"Profil Pelajar Pancasila",saranaPrasarana:"Sarana dan Prasarana",modelPembelajaran:"Model Pembelajaran",pemahamanBermakna:"Pemahaman Bermakna",pertanyaanPemantik:"Pertanyaan Pemantik",kegiatanPendahuluan:"Kegiatan Pendahuluan",kegiatanInti:"Kegiatan Inti",kegiatanPenutup:"Kegiatan Penutup",asesmen:"Asesmen",remedialPengayaan:"Remedial dan Pengayaan",refleksiGuru:"Refleksi Guru",catatanTambahan:"Catatan Tambahan",cp:"Capaian Pembelajaran (CP)",tp:"Tujuan Pembelajaran (TP)",atp:"Alur Tujuan Pembelajaran (ATP)",materi:"Materi Pembelajaran",fase:"Fase",semester:"Semester",alokasiWaktu:"Alokasi Waktu",namaGuru:"Nama Guru",nipGuru:"NIP Guru",tempatTanggal:"Tempat, Tanggal"};
 function label(k:string){return labels[k]||k.replace(/([A-Z])/g," $1").replace(/^./,s=>s.toUpperCase())}
 function value(v:unknown){return v==null?"":String(v).trim()}
 export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}){
- try{const {id}=await params;const device=await prisma.teachingDevice.findUnique({where:{id},include:{school:true}});if(!device)return NextResponse.json({error:"Perangkat tidak ditemukan."},{status:404});
+ try{const {id}=await params;const access=await requireDeviceAccess(id);if(access.response)return access.response;const device=access.device!;const school=device.schoolId?await prisma.school.findUnique({where:{id:device.schoolId}}):null;
  const content=(device.content||{}) as Record<string,unknown>;const school=device.school;const border={style:BorderStyle.SINGLE,size:4,color:"B7C0CE"};
  const cell=(v:string,bold=false)=>new TableCell({children:[new Paragraph({children:[new TextRun({text:v||"-",bold})]})],borders:{top:border,bottom:border,left:border,right:border}});
  const identity=new Table({width:{size:100,type:WidthType.PERCENTAGE},rows:[["Nama Sekolah",school?.name||value(content.namaSekolah)],["Nama Guru",value(content.namaGuru)||"-"],["Mata Pelajaran",device.subjectName||"-"],["Fase / Kelas",`${value(content.fase)||"-"} / ${device.className||"-"}`],["Semester",value(content.semester)||"-"],["Tahun Ajaran",device.academicYear||"-"],["Alokasi Waktu",value(content.alokasiWaktu)||"-"]].map(([a,b])=>new TableRow({children:[cell(a,true),cell(b)]}))});
