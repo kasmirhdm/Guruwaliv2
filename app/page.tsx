@@ -11,7 +11,7 @@ const menus=[
  {label:"Dokumen Saya",icon:FileText,href:"/perangkat-ajar/saya"},
  {label:"Kurikulum",icon:GraduationCap,href:"/perangkat-ajar"},
  {label:"Wali Kelas",icon:Users,href:"/wali-kelas"},
- {label:"Penilaian",icon:ClipboardCheck},
+ {label:"Penilaian",icon:ClipboardCheck,href:"/penilaian"},
  {label:"Pengaturan",icon:Settings}
 ];
 
