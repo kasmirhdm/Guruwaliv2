@@ -5,7 +5,7 @@ if(kind==="curricula"){const data=await prisma.curriculum.findMany({where:{sourc
 if(!curriculumId)return NextResponse.json([]);
 const allowed=await prisma.curriculum.findFirst({where:{id:curriculumId,sourceType:"SCHOOL",schoolId:{in:schoolIds}},select:{id:true}});if(!allowed)return NextResponse.json({error:"Kurikulum sekolah tidak tersedia untuk akun ini."},{status:403});
 if(kind==="phases")return NextResponse.json(await prisma.phase.findMany({where:{curriculumId},orderBy:{name:"asc"}}));
-if(kind==="subjects"){return NextResponse.json(await prisma.masterSubject.findMany({where:{isActive:true,learningOutcomes:{some:{curriculumId}}},orderBy:{name:"asc"}}))}
+if(kind==="subjects"){return NextResponse.json(await prisma.masterSubject.findMany({where:{isActive:true,outcomes:{some:{curriculumId}}},orderBy:{name:"asc"}}))}
 if(kind==="outcomes")return NextResponse.json(await prisma.learningOutcome.findMany({where:{curriculumId,phaseId:phaseId||undefined,masterSubjectId:subjectId||undefined,sourceType:"SCHOOL"},orderBy:{title:"asc"}}));
 if(kind==="objectives")return NextResponse.json(await prisma.learningObjective.findMany({where:{outcomeId:id||outcomeId||undefined},orderBy:{title:"asc"}}));
 if(kind==="sequences")return NextResponse.json(await prisma.learningSequence.findMany({where:{objectiveId:id||objectiveId||undefined},orderBy:{title:"asc"}}));
