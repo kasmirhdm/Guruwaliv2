@@ -300,7 +300,6 @@ model Student {
   updatedAt   DateTime    @updatedAt
   school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   schoolClass SchoolClass? @relation(fields: [schoolClassId], references: [id], onDelete: SetNull)
-  @@unique([schoolId, nisn])
   @@index([schoolId, schoolClassId])
   @@index([schoolId, name])
   @@index([schoolId, nik])
@@ -321,6 +320,5 @@ model ImportedTeacher {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   school      School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  @@unique([schoolId, nuptk])
   @@index([schoolId, name])
 }
