@@ -1,0 +1,5 @@
+import {NextRequest,NextResponse} from "next/server";
+import {prisma} from "@/lib/prisma";
+import {requireSchoolAdmin} from "@/lib/school-access";
+export async function GET(){const {schoolId,response}=await requireSchoolAdmin();if(response)return response;return NextResponse.json(await prisma.schoolClass.findMany({where:{schoolId:schoolId!},include:{homeroomTeacher:{select:{id:true,name:true,email:true}}},orderBy:[{grade:"asc"},{name:"asc"}]}))}
+export async function POST(req:NextRequest){const {schoolId,response}=await requireSchoolAdmin();if(response)return response;const b=await req.json();if(!b.name)return NextResponse.json({error:"Nama kelas wajib diisi."},{status:400});const row=await prisma.schoolClass.create({data:{schoolId:schoolId!,name:String(b.name).trim(),grade:b.grade?String(b.grade).trim():null}});return NextResponse.json(row,{status:201})}
