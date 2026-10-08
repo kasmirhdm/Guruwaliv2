@@ -19,6 +19,7 @@ type Rekap = {
   subjects: { subjectName: string; count: number; average: number | null; min: number | null; max: number | null; predicates: Record<string, number> }[];
   students: { studentId: string; name: string; subjectsGraded: number; average: number | null }[];
 };
+type RefItem = { id: string; name?: string; title?: string; content?: string };
 
 const inputStyle: React.CSSProperties = { width: "100%", padding: "7px 8px", border: "1px solid #dce5e2", borderRadius: 8, fontSize: 12, boxSizing: "border-box" };
 
@@ -33,6 +34,20 @@ export default function PenilaianPage() {
   const [rekap, setRekap] = useState<Rekap | null>(null);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(true);
+  // Rantai kurikulum untuk konteks AI: Kurikulum -> Mapel -> CP -> TP -> ATP -> Materi
+  const [curricula, setCurricula] = useState<RefItem[]>([]);
+  const [curriculumId, setCurriculumId] = useState("");
+  const [refSubjects, setRefSubjects] = useState<RefItem[]>([]);
+  const [refSubjectId, setRefSubjectId] = useState("");
+  const [cps, setCps] = useState<RefItem[]>([]);
+  const [cpId, setCpId] = useState("");
+  const [tps, setTps] = useState<RefItem[]>([]);
+  const [tpId, setTpId] = useState("");
+  const [atps, setAtps] = useState<RefItem[]>([]);
+  const [atpId, setAtpId] = useState("");
+  const [materis, setMateris] = useState<RefItem[]>([]);
+  const [materiId, setMateriId] = useState("");
+  const [generatingId, setGeneratingId] = useState("");
 
   useEffect(() => {
     Promise.all([
@@ -111,6 +126,86 @@ export default function PenilaianPage() {
     await loadGrades(); await loadRekap();
   };
 
+  useEffect(() => {
+    fetch("/api/perangkat/referensi?kind=curricula")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => { setCurricula(d); if (d[0]) setCurriculumId(d[0].id); })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!curriculumId) return;
+    setRefSubjects([]); setRefSubjectId(""); setCps([]); setCpId(""); setTps([]); setTpId(""); setAtps([]); setAtpId(""); setMateris([]); setMateriId("");
+    fetch(`/api/perangkat/referensi?kind=subjects&curriculumId=${curriculumId}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setRefSubjects)
+      .catch(() => {});
+  }, [curriculumId]);
+
+  useEffect(() => {
+    if (!curriculumId || !refSubjectId) return;
+    setCps([]); setCpId(""); setTps([]); setTpId(""); setAtps([]); setAtpId(""); setMateris([]); setMateriId("");
+    fetch(`/api/perangkat/referensi?kind=outcomes&curriculumId=${curriculumId}&subjectId=${refSubjectId}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setCps)
+      .catch(() => {});
+  }, [curriculumId, refSubjectId]);
+
+  useEffect(() => {
+    if (!cpId) return;
+    setTps([]); setTpId(""); setAtps([]); setAtpId(""); setMateris([]); setMateriId("");
+    fetch(`/api/perangkat/referensi?kind=objectives&outcomeId=${cpId}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setTps)
+      .catch(() => {});
+  }, [cpId]);
+
+  useEffect(() => {
+    if (!tpId) return;
+    setAtps([]); setAtpId(""); setMateris([]); setMateriId("");
+    fetch(`/api/perangkat/referensi?kind=sequences&objectiveId=${tpId}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setAtps)
+      .catch(() => {});
+  }, [tpId]);
+
+  useEffect(() => {
+    if (!atpId) return;
+    setMateris([]); setMateriId("");
+    fetch(`/api/perangkat/referensi?kind=materials&sequenceId=${atpId}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setMateris)
+      .catch(() => {});
+  }, [atpId]);
+
+  const refText = (list: RefItem[], id: string) => {
+    const it = list.find((x) => x.id === id);
+    if (!it) return "";
+    return [it.title || it.name || "", it.content || ""].filter(Boolean).join(" — ");
+  };
+
+  const generate = async (s: StudentRow) => {
+    if (!subject.trim()) { setMsg("Isi nama mata pelajaran dulu."); return; }
+    setGeneratingId(s.id);
+    try {
+      const r = await fetch("/api/rapor/deskripsi/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          periodId, studentId: s.id, subjectName: subject.trim(),
+          cp: refText(cps, cpId), tp: refText(tps, tpId),
+          atp: refText(atps, atpId), materi: refText(materis, materiId),
+        }),
+      });
+      const x = await r.json();
+      if (!r.ok) { setMsg(x.error || "Gagal membuat deskripsi."); return; }
+      setDraft(s.id, "description", x.description);
+      setMsg(`Deskripsi untuk ${s.name} dibuat AI. Periksa/edit, lalu klik Simpan.`);
+    } finally {
+      setGeneratingId("");
+    }
+  };
+
   const period = useMemo(() => periods.find((p) => p.id === periodId), [periods, periodId]);
 
   return (
@@ -149,6 +244,49 @@ export default function PenilaianPage() {
         </div>
         {msg && <p style={{ fontSize: 12, color: "#15916c", marginTop: 10 }}>{msg}</p>}
 
+        <div style={{ marginTop: 16, background: "#f7faf9", borderRadius: 12, padding: 14 }}>
+          <b style={{ fontSize: 12, color: "#394746" }}>Konteks Kurikulum untuk Deskripsi AI</b>
+          <p style={{ fontSize: 11, color: "#748281", margin: "4px 0 10px" }}>Pilih rantai Kurikulum → Mata Pelajaran → CP → TP → ATP → Materi; AI memakai pilihan ini + nilai tersimpan siswa.</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 10 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "#394746" }}>Kurikulum
+              <select style={inputStyle} value={curriculumId} onChange={(e) => setCurriculumId(e.target.value)}>
+                <option value="">Pilih kurikulum</option>
+                {curricula.map((c) => <option key={c.id} value={c.id}>{c.name || c.title}</option>)}
+              </select>
+            </label>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "#394746" }}>Mata Pelajaran
+              <select style={inputStyle} value={refSubjectId} onChange={(e) => { setRefSubjectId(e.target.value); const s = refSubjects.find((x) => x.id === e.target.value); if (s?.name) setSubject(s.name); }}>
+                <option value="">Pilih mapel</option>
+                {refSubjects.map((c) => <option key={c.id} value={c.id}>{c.name || c.title}</option>)}
+              </select>
+            </label>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "#394746" }}>CP
+              <select style={inputStyle} value={cpId} onChange={(e) => setCpId(e.target.value)}>
+                <option value="">Pilih CP</option>
+                {cps.map((c) => <option key={c.id} value={c.id}>{(c.title || c.content || "").slice(0, 60)}</option>)}
+              </select>
+            </label>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "#394746" }}>TP
+              <select style={inputStyle} value={tpId} onChange={(e) => setTpId(e.target.value)}>
+                <option value="">Pilih TP</option>
+                {tps.map((c) => <option key={c.id} value={c.id}>{(c.title || c.content || "").slice(0, 60)}</option>)}
+              </select>
+            </label>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "#394746" }}>ATP
+              <select style={inputStyle} value={atpId} onChange={(e) => setAtpId(e.target.value)}>
+                <option value="">Pilih ATP</option>
+                {atps.map((c) => <option key={c.id} value={c.id}>{(c.title || c.content || "").slice(0, 60)}</option>)}
+              </select>
+            </label>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "#394746" }}>Materi
+              <select style={inputStyle} value={materiId} onChange={(e) => setMateriId(e.target.value)}>
+                <option value="">Pilih materi</option>
+                {materis.map((c) => <option key={c.id} value={c.id}>{(c.title || c.content || "").slice(0, 60)}</option>)}
+              </select>
+            </label>
+          </div>
+        </div>
+
         {loading ? <p style={{ fontSize: 12, color: "#899597" }}>Memuat...</p> : !period ? (
           <p style={{ fontSize: 12, color: "#899597", marginTop: 14 }}>Belum ada periode rapor. Admin Sekolah dapat membuat periode lewat API rapor.</p>
         ) : (
@@ -170,6 +308,7 @@ export default function PenilaianPage() {
                     <td><input style={inputStyle} value={drafts[s.id]?.predicate ?? ""} onChange={(e) => setDraft(s.id, "predicate", e.target.value)} placeholder="otomatis" /></td>
                     <td><textarea style={{ ...inputStyle, minHeight: 54 }} value={drafts[s.id]?.description ?? ""} onChange={(e) => setDraft(s.id, "description", e.target.value)} placeholder="Deskripsi capaian siswa..." /></td>
                     <td style={{ whiteSpace: "nowrap" }}>
+                      <button onClick={() => generate(s)} disabled={generatingId === s.id} title="Buat deskripsi dengan AI (isi kolom deskripsi untuk ditinjau)" style={{ background: "#eef6ff", color: "#175cd3", border: 0, borderRadius: 8, padding: "7px 10px", cursor: "pointer", marginRight: 6, fontSize: 11, fontWeight: 700 }}>{generatingId === s.id ? "..." : "AI"}</button>
                       <button onClick={() => save(s)} title="Simpan" style={{ background: "#15916c", color: "#fff", border: 0, borderRadius: 8, padding: "7px 10px", cursor: "pointer", marginRight: 6 }}><Save size={13} /></button>
                       {s.grade?.id && <button onClick={() => remove(s)} title="Hapus nilai" style={{ background: "#fdecec", color: "#b3261e", border: 0, borderRadius: 8, padding: "7px 10px", cursor: "pointer" }}><Trash2 size={13} /></button>}
                     </td>

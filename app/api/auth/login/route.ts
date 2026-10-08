@@ -3,6 +3,7 @@ import { prisma } from "../../../../lib/prisma";
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE } from "../../../../lib/auth";
+import { rateLimit, clientKey } from "../../../../lib/rate-limit";
 
 function verifyPassword(password:string,stored:string){
   const [salt,hex]=stored.split(":");
@@ -15,6 +16,8 @@ function verifyPassword(password:string,stored:string){
 export async function POST(req:Request){
   const b=await req.json();
   const email=String(b.email||"").trim().toLowerCase();
+  if(!rateLimit(`login:${clientKey(req)}:${email}`,10,15*60*1000))
+    return NextResponse.json({error:"Terlalu banyak percobaan login. Coba lagi nanti."},{status:429});
   const password=String(b.password||"");
   const user=await prisma.user.findUnique({where:{email}});
   if(!user||!verifyPassword(password,user.passwordHash)||user.status!=="ACTIVE")return NextResponse.json({error:"Email atau password salah."},{status:401});
