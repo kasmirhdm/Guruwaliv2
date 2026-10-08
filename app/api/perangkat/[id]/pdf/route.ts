@@ -16,7 +16,7 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}
   doc.on("data",b=>chunks.push(b));
   const done=new Promise<Buffer>((resolve,reject)=>{doc.on("end",()=>resolve(Buffer.concat(chunks)));doc.on("error",reject)});
   doc.fontSize(15).font("Helvetica-Bold").text(school?.name||String(content.namaSekolah||"Nama Sekolah"),{align:"center"});
-  if(school?.address||content.alamatSekolah)doc.fontSize(9).font("Helvetica").text(school?.address||String(content.alamatSekolah),{align:"center"});
+  if(school?.address||content.alamatSekolah)doc.fontSize(9).font("Helvetica").text(school?.address||String(content.alamatSekolah),{align:"center"});\n  if(school?.npsn)doc.fontSize(8).text("NPSN: "+school.npsn,{align:"center"});
   doc.moveDown(0.5).moveTo(48,doc.y).lineTo(547,doc.y).stroke().moveDown(1);
   doc.fontSize(18).font("Helvetica-Bold").text(device.title);
   doc.moveDown(.3).fontSize(9).font("Helvetica").text(`Mata Pelajaran: ${device.subjectName||"-"}   |   Kelas: ${device.className||"-"}   |   Tahun Ajaran: ${device.academicYear||"-"}`);
