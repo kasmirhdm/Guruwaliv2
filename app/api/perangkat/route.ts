@@ -14,8 +14,17 @@ export async function POST(req:Request){
   const user=await getCurrentUser();
   if(!user)return NextResponse.json({error:"Anda harus login."},{status:401});
   const b=await req.json();
-  b.ownerUserId=user.id;
-  if(!b.ownerUserId||!b.type||!b.title)return NextResponse.json({error:"Pemilik, jenis dan judul wajib diisi"},{status:400});
+  if(!b.type||!b.title)return NextResponse.json({error:"Jenis dan judul wajib diisi"},{status:400});
+  let schoolId:string|null=null;
+  if(user.role!=="GURUWALI_ADMIN"){
+    const memberships=await prisma.schoolMembership.findMany({where:{userId:user.id,status:"ACTIVE"},select:{schoolId:true}});
+    if(memberships.length===1) schoolId=memberships[0].schoolId;
+    else if(b.schoolId&&memberships.some(m=>m.schoolId===b.schoolId)) schoolId=b.schoolId;
+  } else if(b.schoolId){
+    const school=await prisma.school.findUnique({where:{id:b.schoolId},select:{id:true}});
+    if(!school)return NextResponse.json({error:"Sekolah tidak ditemukan."},{status:400});
+    schoolId=school.id;
+  }
 
   const content={...(b.content||{})};
 
@@ -57,7 +66,7 @@ export async function POST(req:Request){
   }
 
   const device=await prisma.teachingDevice.create({data:{
-    ownerUserId:b.ownerUserId,type:b.type,title:b.title,subjectName:b.subjectName||null,className:b.className||null,
+    ownerUserId:user.id,schoolId,type:b.type,title:b.title,subjectName:b.subjectName||null,className:b.className||null,
     academicYear:b.academicYear||null,curriculumId:b.curriculumId||null,phaseId:b.phaseId||null,outcomeId:b.outcomeId||null,
     objectiveId:b.objectiveId||null,sequenceId:b.sequenceId||null,materialId:b.materialId||null,content
   }});
