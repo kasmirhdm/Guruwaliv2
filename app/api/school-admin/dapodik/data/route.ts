@@ -84,9 +84,14 @@ export async function POST(req:NextRequest){
   const teacherMap=new Map(activeTeachers.map(x=>[norm(x.user.name),x.user]));
   const importedTeachers=[];
   for(const t of teachers){
-   const where=t.nuptk?{schoolId:schoolId!,nuptk:t.nuptk}:null;
-   if(where) await prisma.importedTeacher.upsert({where:{schoolId_nuptk:{schoolId:schoolId!,nuptk:t.nuptk}},update:{name:t.name!,nip:t.nip,nik:t.nik,email:t.email,phone:t.phone,status:"IMPORTED"},create:{schoolId:schoolId!,name:t.name!,nip:t.nip,nuptk:t.nuptk,nik:t.nik,email:t.email,phone:t.phone}});
-   else await prisma.importedTeacher.create({data:{schoolId:schoolId!,name:t.name!,nip:t.nip,nik:t.nik,email:t.email,phone:t.phone}});
+   const existingTeacher=t.nuptk
+     ? await prisma.importedTeacher.findFirst({where:{schoolId:schoolId!,nuptk:t.nuptk}})
+     : await prisma.importedTeacher.findFirst({where:{schoolId:schoolId!,name:t.name!},orderBy:{updatedAt:"desc"}});
+   if(existingTeacher){
+     await prisma.importedTeacher.update({where:{id:existingTeacher.id},data:{name:t.name!,nip:t.nip,nuptk:t.nuptk,nik:t.nik,email:t.email,phone:t.phone,status:"IMPORTED"}});
+   }else{
+     await prisma.importedTeacher.create({data:{schoolId:schoolId!,name:t.name!,nip:t.nip,nuptk:t.nuptk,nik:t.nik,email:t.email,phone:t.phone,status:"IMPORTED"}});
+   }
    importedTeachers.push(t);
   }
   let created=0,updated=0,matchedClass=0,unmatchedClass=0,createdClasses=0;
