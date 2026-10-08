@@ -68,7 +68,7 @@ export async function POST(req:Request){
   const device=await prisma.teachingDevice.create({data:{
     ownerUserId:user.id,schoolId,type:b.type,title:b.title,subjectName:b.subjectName||null,className:b.className||null,
     academicYear:b.academicYear||null,curriculumId:b.curriculumId||null,phaseId:b.phaseId||null,outcomeId:b.outcomeId||null,
-    objectiveId:b.objectiveId||null,sequenceId:b.sequenceId||null,materialId:b.materialId||null,content
+    objectiveId:b.objectiveId||null,sequenceId:b.sequenceId||null,materialId:b.materialId||null,schoolClassId:b.schoolClassId||null,content
   }});
   return NextResponse.json(device,{status:201});
 }
