@@ -15,7 +15,7 @@ export default function PerangkatPage(){
  useEffect(()=>{if(!form.outcomeId){setRefs((x:any)=>({...x,objectives:[]}));return} fetch(ref("objectives",form.outcomeId)+"&curriculumId="+encodeURIComponent(form.curriculumId)).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,objectives:v}))).catch(()=>{})},[form.outcomeId]);
  useEffect(()=>{if(!form.objectiveId){setRefs((x:any)=>({...x,sequences:[]}));return} fetch(ref("sequences",form.objectiveId)+"&curriculumId="+encodeURIComponent(form.curriculumId)).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,sequences:v}))).catch(()=>{})},[form.objectiveId]);
  useEffect(()=>{if(!form.sequenceId){setRefs((x:any)=>({...x,materials:[]}));return} fetch(ref("materials",form.sequenceId)+"&curriculumId="+encodeURIComponent(form.curriculumId)).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,materials:v}))).catch(()=>{})},[form.sequenceId]);
- useEffect(()=>{fetch(api.subjects).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,subjects:v}))).catch(()=>{})},[]);
+ useEffect(()=>{if(!form.curriculumId){setRefs((x:any)=>({...x,subjects:[]}));return}fetch(ref("subjects")+"&curriculumId="+encodeURIComponent(form.curriculumId)).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,subjects:v}))).catch(()=>{})},[form.curriculumId]);
 
  const filteredPhases=(refs.phases||[]).filter((x:any)=>!form.curriculumId||x.curriculumId===form.curriculumId);
  const filteredSubjects=(refs.subjects||[]).filter((x:any)=>x.isActive!==false);
