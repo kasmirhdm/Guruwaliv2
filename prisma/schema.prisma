@@ -352,7 +352,7 @@ model GradeEntry {
   description String?
   period      ReportPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
   student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  teacher     User?       @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  teacher     User?       @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: SetNull)
   @@unique([periodId, studentId, subjectName])
   @@index([studentId, periodId])
 }
