@@ -122,13 +122,13 @@ model Subject {
 
 model MasterCurriculumRevision {
   id           String   @id @default(cuid())
-  curriculumId String
+  curriculumId String?
   version      Int
   label        String?
   snapshot     Json
   createdById  String?
   createdAt    DateTime @default(now())
-  curriculum   Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  curriculum   Curriculum? @relation(fields: [curriculumId], references: [id], onDelete: SetNull)
   @@unique([curriculumId, version])
   @@index([curriculumId, createdAt])
 }
