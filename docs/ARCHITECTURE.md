@@ -27,3 +27,35 @@ Kurikulum -> Fase -> Mata Pelajaran -> CP -> TP -> ATP -> Materi -> Perangkat Aj
 - GitHub: source and CI.
 - VPS: Next.js application, PostgreSQL, document storage, Nginx and SSL.
 - No Supabase dependency.
+
+## Posisi produk (mengikat, 2026-10-08)
+- GuruWali V2 adalah platform **administrasi** guru/sekolah, **bukan**
+  aplikasi Guru AI. Aplikasi Guru AI adalah GuruWali v1 yang berjalan
+  terpisah; fitur AI v1 tidak digabungkan ke v2.
+- Satu-satunya pemakaian AI di v2: fitur pendukung **Generate Deskripsi
+  Rapor**. AI menerima nama siswa, mata pelajaran, CP, TP, ATP, materi,
+  nilai, dan predikat — lalu hanya menghasilkan teks deskripsi. AI tidak
+  pernah mengubah nilai; guru meninjau/mengedit/menyimpan hasil akhir.
+
+## Keamanan endpoint
+- Helper server: `requireUser()` dan `requireRole()` di
+  `lib/require-auth.ts` (sesi cookie HttpOnly, token sesi SHA-256).
+- Seluruh `/api/master-kurikulum/*` — baca maupun ubah, termasuk
+  revision/history — khusus `GURUWALI_ADMIN`.
+- Endpoint perangkat memakai `requireDeviceAccess`: pemilik, Admin
+  GuruWali, atau Admin Sekolah (baca-saja) dari sekolah pemilik data.
+- Endpoint rapor memakai `requirePeriodAccess`: `schoolId` selalu
+  diambil dari periode di database, bukan dari input klien, dan
+  keanggotaan aktif sekolah wajib ada.
+- Satu-satunya endpoint publik: login, register (keduanya rate-limited),
+  dan health check.
+
+## Relasi data inti
+- Rantai kurikulum: `Curriculum` → `Phase` → (`MasterSubject`/`Subject`)
+  → `LearningOutcome` (CP) → `LearningObjective` (TP) →
+  `LearningSequence` (ATP) → `LearningMaterial` (Materi).
+- `TeachingDevice` berelasi foreign key ke keenam tingkat rantai
+  (`onDelete: SetNull`) sehingga integritas rantai ditegakkan database,
+  divalidasi pula di lapisan aplikasi saat perangkat dibuat.
+- Nilai rapor: `GradeEntry` terhubung ke `ReportPeriod`, `Student`, dan
+  guru pencatat (`User` relasi `TeacherGrades`).

@@ -3,6 +3,17 @@
 Platform administrasi guru dan sekolah. **Bukan** aplikasi Guru AI —
 GuruWali v1 (generator AI) tetap berjalan terpisah di guruwali.web.id.
 
+## Status fondasi (checkpoint stabilisasi)
+
+- Prisma schema valid; `prisma generate` dan `tsc --noEmit` bersih.
+- Migration lengkap untuk database kosong: baseline fondasi +
+  migration bertahap (`prisma migrate deploy` terverifikasi dari nol).
+- `TeachingDevice` berelasi resmi ke rantai kurikulum
+  (Curriculum/Phase/CP/TP/ATP/Materi, `onDelete: SetNull`).
+- Semua endpoint Master Kurikulum hanya untuk `GURUWALI_ADMIN`
+  (termasuk revision/history); endpoint lain mewajibkan login dan
+  memverifikasi kepemilikan/keanggotaan sekolah di server.
+
 ## Keputusan produk (2026-10-08, mengikat)
 
 - V2 adalah platform administrasi guru/sekolah: kurikulum, perangkat ajar,
