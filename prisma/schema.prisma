@@ -76,6 +76,7 @@ model School {
   teachingDevices TeachingDevice[]
   students        Student[]
   importedTeachers ImportedTeacher[]
+  dapodikImports DapodikImportLog[]
 }
 
 model SchoolMembership {
@@ -321,4 +322,18 @@ model ImportedTeacher {
   updatedAt   DateTime @updatedAt
   school      School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   @@index([schoolId, name])
+}
+
+model DapodikImportLog {
+  id             String   @id @default(cuid())
+  schoolId       String
+  fileName       String
+  studentsCreated Int     @default(0)
+  studentsUpdated Int     @default(0)
+  teachersImported Int    @default(0)
+  classesCreated Int      @default(0)
+  matchedClasses Int      @default(0)
+  createdAt      DateTime @default(now())
+  school         School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  @@index([schoolId, createdAt])
 }
