@@ -62,6 +62,7 @@ export default function DapodikPage(){
    {error&&<div style={{marginTop:14,padding:11,borderRadius:9,background:"#fff2f2",color:"#b42318",fontSize:11,display:"flex",gap:7}}><AlertCircle size={16}/>{error}</div>}
    {msg&&<div style={{marginTop:14,padding:11,borderRadius:9,background:"#effaf5",color:"#16724f",fontSize:11,display:"flex",gap:7}}><CheckCircle2 size={16}/>{msg}</div>}
   </section>
+  {history.length>0&&<section className="saCard" style={{maxWidth:1050,margin:"18px auto"}}><h2 style={{fontSize:16,marginTop:0}}>Riwayat Import Dapodik</h2>{history.map((h:any)=><div key={h.id} style={{display:"flex",alignItems:"center",gap:10,padding:"11px 0",borderBottom:"1px solid #edf1f1",fontSize:10}}><div style={{flex:1}}><b>{h.fileName}</b><span style={{display:"block",color:"#899597",marginTop:3}}>{new Date(h.createdAt).toLocaleString("id-ID")}</span></div><span>{h.studentsCreated+h.studentsUpdated} siswa</span><span>{h.teachersImported} PTK</span><span>{h.classesCreated} rombel baru</span></div>)}</section>}
   {profile&&<section className="saCard" style={{maxWidth:1050,margin:"18px auto"}}>
    <h2 style={{fontSize:16,marginTop:0}}>Pratinjau Data</h2>
    <p style={{fontSize:10,color:"#899597"}}>Periksa hasil pembacaan sebelum menimpa profil sekolah GuruWali.</p>
