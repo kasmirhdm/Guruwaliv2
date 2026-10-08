@@ -27,7 +27,7 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}
    doc.moveDown(.15).fontSize(9.5).font("Helvetica").text(String(value),{lineGap:3});
    doc.moveDown(.7);
   }
-  doc.end();
+  doc.moveDown(2);\n  doc.text("Mengetahui,",380);\n  doc.text(school?.name||"Nama Sekolah",380);\n  doc.text("Kepala Sekolah",380);\n  doc.moveDown(2.5);\n  doc.font("Helvetica-Bold").text(school?.principalName||"________________________",380);\n  if(school?.principalNip)doc.font("Helvetica").text("NIP. "+school.principalNip,380);\n  doc.end();
   const buffer=await done;
   const filename=device.title.replace(/[^a-zA-Z0-9_-]+/g,"-")+".pdf";
   return new NextResponse(buffer,{status:200,headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="${filename}"`}});
