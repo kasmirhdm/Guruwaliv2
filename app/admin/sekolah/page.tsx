@@ -17,6 +17,6 @@ export default function SchoolSettings(){
  <label>Logo Sekolah / URL Logo<input value={d.logoPath||""} onChange={e=>set("logoPath",e.target.value)} placeholder="/uploads/logo.png atau URL"/></label>
  <label className="full">Alamat Sekolah<textarea value={d.address||""} onChange={e=>set("address",e.target.value)} placeholder="Alamat lengkap sekolah"/></label>
  </div><div className="logoHint"><ImageIcon size={17}/><span>Logo akan digunakan pada kop setelah penyimpanan file logo di storage GuruWali.</span></div>
- <div className="actions"><button onClick={save}><Save size={16}/> Simpan Profil</button>{msg&&<span>{msg}</span>}</div></section>
+ <div className="actions"><Link href="/admin/sekolah/permintaan" className="requestLink">Permintaan Guru</Link><button onClick={save}><Save size={16}/> Simpan Profil</button>{msg&&<span>{msg}</span>}</div></section>
  <section className="schoolCard preview"><h2>Pratinjau Kop</h2><div className="letterhead">{d.logoPath?<img src={d.logoPath} alt="Logo sekolah"/>:<div className="logoPlaceholder">LOGO</div>}<div><b>{d.name||"NAMA SEKOLAH"}</b><span>{d.address||"Alamat sekolah"}</span>{d.npsn&&<small>NPSN: {d.npsn}</small>}</div></div></section>
  </main>
