@@ -9,7 +9,13 @@ const moduleFields=[["namaGuru","Nama Guru","Nama guru penyusun modul."],["nipGu
 export default function PerangkatPage(){
  const [type,setType]=useState("MODUL_AJAR");const [refs,setRefs]=useState<any>({});const [saving,setSaving]=useState(false);const [message,setMessage]=useState("");
  const [form,setForm]=useState<any>({ownerUserId:"demo-teacher",title:"",subjectName:"",className:"",academicYear:"2026/2027",content:{}});
- useEffect(()=>{Promise.all(Object.entries(api).map(async([k,u])=>[k,await fetch(u).then(r=>r.ok?r.json():[])] )).then(x=>setRefs(Object.fromEntries(x as any))).catch(()=>{})},[]);
+ useEffect(()=>{fetch(api.curricula).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,curricula:v}))).catch(()=>{})},[]);
+ useEffect(()=>{if(!form.curriculumId){setRefs((x:any)=>({...x,phases:[]}));return} fetch(api.phases+"?curriculumId="+encodeURIComponent(form.curriculumId)).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,phases:v}))).catch(()=>{})},[form.curriculumId]);
+ useEffect(()=>{if(!form.phaseId||!form.subjectId){setRefs((x:any)=>({...x,outcomes:[]}));return} fetch(api.outcomes+"?curriculumId="+encodeURIComponent(form.curriculumId)+"&phaseId="+encodeURIComponent(form.phaseId)+"&masterSubjectId="+encodeURIComponent(form.subjectId)).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,outcomes:v}))).catch(()=>{})},[form.curriculumId,form.phaseId,form.subjectId]);
+ useEffect(()=>{if(!form.outcomeId){setRefs((x:any)=>({...x,objectives:[]}));return} fetch(api.objectives+"?outcomeId="+encodeURIComponent(form.outcomeId)).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,objectives:v}))).catch(()=>{})},[form.outcomeId]);
+ useEffect(()=>{if(!form.objectiveId){setRefs((x:any)=>({...x,sequences:[]}));return} fetch(api.sequences+"?objectiveId="+encodeURIComponent(form.objectiveId)).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,sequences:v}))).catch(()=>{})},[form.objectiveId]);
+ useEffect(()=>{if(!form.sequenceId){setRefs((x:any)=>({...x,materials:[]}));return} fetch(api.materials+"?sequenceId="+encodeURIComponent(form.sequenceId)).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,materials:v}))).catch(()=>{})},[form.sequenceId]);
+ useEffect(()=>{fetch(api.subjects).then(r=>r.ok?r.json():[]).then(v=>setRefs((x:any)=>({...x,subjects:v}))).catch(()=>{})},[]);
 
  const filteredPhases=(refs.phases||[]).filter((x:any)=>!form.curriculumId||x.curriculumId===form.curriculumId);
  const filteredSubjects=(refs.subjects||[]).filter((x:any)=>x.isActive!==false);
