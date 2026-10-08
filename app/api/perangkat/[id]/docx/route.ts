@@ -1,35 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Document, Packer, Paragraph, HeadingLevel, TextRun } from "docx";
+import { Document, Packer, Paragraph, HeadingLevel, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } from "docx";
 import { prisma } from "@/lib/prisma";
-
-function label(key:string){return key.replace(/([A-Z])/g," $1").replace(/^./,s=>s.toUpperCase())}
-
+const labels: Record<string,string>={kompetensiAwal:"Kompetensi Awal",profilPelajarPancasila:"Profil Pelajar Pancasila",saranaPrasarana:"Sarana dan Prasarana",modelPembelajaran:"Model Pembelajaran",pemahamanBermakna:"Pemahaman Bermakna",pertanyaanPemantik:"Pertanyaan Pemantik",kegiatanPendahuluan:"Kegiatan Pendahuluan",kegiatanInti:"Kegiatan Inti",kegiatanPenutup:"Kegiatan Penutup",asesmen:"Asesmen",remedialPengayaan:"Remedial dan Pengayaan",refleksiGuru:"Refleksi Guru",catatanTambahan:"Catatan Tambahan",cp:"Capaian Pembelajaran (CP)",tp:"Tujuan Pembelajaran (TP)",atp:"Alur Tujuan Pembelajaran (ATP)",materi:"Materi Pembelajaran",fase:"Fase",semester:"Semester",alokasiWaktu:"Alokasi Waktu",namaGuru:"Nama Guru",nipGuru:"NIP Guru",tempatTanggal:"Tempat, Tanggal"};
+function label(k:string){return labels[k]||k.replace(/([A-Z])/g," $1").replace(/^./,s=>s.toUpperCase())}
+function value(v:unknown){return v==null?"":String(v).trim()}
 export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}){
-  try{
-    const {id}=await params;
-    const device=await prisma.teachingDevice.findUnique({where:{id},include:{school:true}});
-    if(!device)return NextResponse.json({error:"Perangkat tidak ditemukan."},{status:404});
-    const content=(device.content||{}) as Record<string,unknown>;\n    const school=device.school;
-    const children:Paragraph[]=[\n      new Paragraph({text:school?.name||String(content.namaSekolah||"Nama Sekolah"),alignment:1,heading:HeadingLevel.HEADING_1}),\n      new Paragraph({text:school?.address||String(content.alamatSekolah||""),alignment:1}),\n      new Paragraph({text:school?.npsn?`NPSN: ${school.npsn}`:"",alignment:1}),
-      new Paragraph({text:device.title,heading:HeadingLevel.TITLE}),
-      new Paragraph({children:[new TextRun({text:"GuruWali • Perangkat Ajar",bold:true})]}),
-      new Paragraph({text:`Mata Pelajaran: ${device.subjectName||"-"} | Kelas: ${device.className||"-"} | Tahun Ajaran: ${device.academicYear||"-"}`}),
-      new Paragraph({text:" "})
-    ];
-    for(const [key,value] of Object.entries(content)){
-      if(value===null||value===undefined||String(value).trim()==="")continue;
-      children.push(new Paragraph({text:label(key),heading:HeadingLevel.HEADING_2}));
-      children.push(...String(value).split(/\\n+/).map(x=>new Paragraph({text:x.trim()})));
-    }
-    const doc=new Document({sections:[{properties:{},children}]});
-    children.push(new Paragraph({text:" "}));\n    children.push(new Paragraph({text:"Mengetahui,",alignment:2}));\n    children.push(new Paragraph({text:school?.name||"Nama Sekolah",alignment:2}));\n    children.push(new Paragraph({text:"Kepala Sekolah",alignment:2}));\n    children.push(new Paragraph({text:"\n\n\n"+(school?.principalName||"________________________"),alignment:2}));\n    if(school?.principalNip)children.push(new Paragraph({text:"NIP. "+school.principalNip,alignment:2}));\n    const doc=new Document({sections:[{properties:{},children}]});\n    const buffer=await Packer.toBuffer(doc);
-    const filename=device.title.replace(/[^a-zA-Z0-9_-]+/g,"-")+".docx";
-    return new NextResponse(buffer,{status:200,headers:{
-      "Content-Type":"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "Content-Disposition":`attachment; filename="${filename}"`
-    }});
-  }catch(error){
-    console.error(error);
-    return NextResponse.json({error:"Gagal membuat DOCX."},{status:500});
-  }
-}
+ try{const {id}=await params;const device=await prisma.teachingDevice.findUnique({where:{id},include:{school:true}});if(!device)return NextResponse.json({error:"Perangkat tidak ditemukan."},{status:404});
+ const content=(device.content||{}) as Record<string,unknown>;const school=device.school;const border={style:BorderStyle.SINGLE,size:4,color:"B7C0CE"};
+ const cell=(v:string,bold=false)=>new TableCell({children:[new Paragraph({children:[new TextRun({text:v||"-",bold})]})],borders:{top:border,bottom:border,left:border,right:border}});
+ const identity=new Table({width:{size:100,type:WidthType.PERCENTAGE},rows:[["Nama Sekolah",school?.name||value(content.namaSekolah)],["Nama Guru",value(content.namaGuru)||"-"],["Mata Pelajaran",device.subjectName||"-"],["Fase / Kelas",`${value(content.fase)||"-"} / ${device.className||"-"}`],["Semester",value(content.semester)||"-"],["Tahun Ajaran",device.academicYear||"-"],["Alokasi Waktu",value(content.alokasiWaktu)||"-"]].map(([a,b])=>new TableRow({children:[cell(a,true),cell(b)]}))});
+ const children:(Paragraph|Table)[]=[];children.push(new Paragraph({text:school?.name||value(content.namaSekolah)||"Nama Sekolah",alignment:AlignmentType.CENTER,heading:HeadingLevel.HEADING_1}));if(school?.address||content.alamatSekolah)children.push(new Paragraph({text:school?.address||value(content.alamatSekolah),alignment:AlignmentType.CENTER}));if(school?.npsn)children.push(new Paragraph({text:"NPSN: "+school.npsn,alignment:AlignmentType.CENTER}));
+ children.push(new Paragraph({text:"MODUL AJAR",alignment:AlignmentType.CENTER,heading:HeadingLevel.TITLE}),new Paragraph({text:device.title,alignment:AlignmentType.CENTER}),new Paragraph({text:" "}),identity,new Paragraph({text:" "}));
+ const preferred=["cp","tp","atp","materi","kompetensiAwal","profilPelajarPancasila","saranaPrasarana","modelPembelajaran","pemahamanBermakna","pertanyaanPemantik","kegiatanPendahuluan","kegiatanInti","kegiatanPenutup","asesmen","remedialPengayaan","refleksiGuru","catatanTambahan"];
+ for(const key of preferred){const v=value(content[key]);if(!v)continue;children.push(new Paragraph({text:label(key),heading:HeadingLevel.HEADING_2}));for(const line of v.split(/\r?\n+/).map(x=>x.trim()).filter(Boolean))children.push(new Paragraph({text:line}))}
+ children.push(new Paragraph({text:" "}),new Paragraph({text:value(content.tempatTanggal)||"__________________, __________________",alignment:AlignmentType.RIGHT}),new Paragraph({text:"Mengetahui,",alignment:AlignmentType.RIGHT}),new Paragraph({text:school?.name||"Nama Sekolah",alignment:AlignmentType.RIGHT}),new Paragraph({text:"Kepala Sekolah",alignment:AlignmentType.RIGHT}),new Paragraph({text:"\n\n\n"+(school?.principalName||"________________________"),alignment:AlignmentType.RIGHT}));if(school?.principalNip)children.push(new Paragraph({text:"NIP. "+school.principalNip,alignment:AlignmentType.RIGHT}));
+ if(value(content.namaGuru)){children.push(new Paragraph({text:" "}),new Paragraph({text:"Guru Mata Pelajaran",alignment:AlignmentType.LEFT}),new Paragraph({text:"\n\n\n"+value(content.namaGuru),alignment:AlignmentType.LEFT}));if(value(content.nipGuru))children.push(new Paragraph({text:"NIP. "+value(content.nipGuru),alignment:AlignmentType.LEFT})}
+ const doc=new Document({sections:[{properties:{},children}]});const buffer=await Packer.toBuffer(doc);const filename=device.title.replace(/[^a-zA-Z0-9_-]+/g,"-")+".docx";return new NextResponse(buffer,{headers:{"Content-Type":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","Content-Disposition":`attachment; filename="\${filename}"`}})}catch(error){console.error(error);return NextResponse.json({error:"Gagal membuat DOCX."},{status:500})}}
