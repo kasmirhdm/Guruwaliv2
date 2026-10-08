@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     : "-";
   const identitas: [string, string][] = [
     ["Nama Siswa", student.name],
-    ["NIS / NISN", [student.nis, student.nisn].filter(Boolean).join(" / ") || "-"],
+    ["NIS / NISN", [student.nis, student.nisn].filter(Boolean).join(" / ") || "Belum diisi"],
     ["Kelas", kelas],
     ["Tahun Ajaran", period.academicYear],
     ["Semester", period.semester],
