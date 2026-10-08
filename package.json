@@ -16,7 +16,8 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "lucide-react": "^0.468.0",
-    "@prisma/client": "^6.16.0"
+    "@prisma/client": "^6.16.0",
+    "docx": "^9.5.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
