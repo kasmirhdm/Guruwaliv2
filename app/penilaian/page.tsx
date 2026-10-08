@@ -217,6 +217,11 @@ export default function PenilaianPage() {
         <p style={{ fontSize: 11, letterSpacing: 1.5, color: "#15916c", fontWeight: 800, marginTop: 18 }}>PENILAIAN & REKAP</p>
         <h1 style={{ margin: "5px 0", fontSize: 28 }}>Penilaian Rapor</h1>
         <p style={{ color: "#748281", fontSize: 13 }}>Input nilai per periode, mata pelajaran, dan kelas. Nilai akhir & predikat terhitung otomatis bila dikosongkan.</p>
+        <p style={{ fontSize: 12, marginTop: 8 }}>
+          <Link href="/rapor" style={{ color: "#15916c", fontWeight: 700, textDecoration: "none" }}>Preview & PDF Rapor →</Link>
+          {"  •  "}
+          <Link href="/wali-kelas/catatan" style={{ color: "#15916c", fontWeight: 700, textDecoration: "none" }}>Catatan Wali Kelas →</Link>
+        </p>
       </header>
 
       <section style={{ maxWidth: 1100, margin: "0 auto", background: "#fff", border: "1px solid #e5ecea", borderRadius: 16, padding: 20 }}>
