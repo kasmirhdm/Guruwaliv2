@@ -10,7 +10,7 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}
     const device=await prisma.teachingDevice.findUnique({where:{id},include:{school:true}});
     if(!device)return NextResponse.json({error:"Perangkat tidak ditemukan."},{status:404});
     const content=(device.content||{}) as Record<string,unknown>;\n    const school=device.school;
-    const children:Paragraph[]=[\n      new Paragraph({text:school?.name||String(content.namaSekolah||"Nama Sekolah"),alignment:1,heading:HeadingLevel.HEADING_1}),\n      new Paragraph({text:school?.address||String(content.alamatSekolah||""),alignment:1}),
+    const children:Paragraph[]=[\n      new Paragraph({text:school?.name||String(content.namaSekolah||"Nama Sekolah"),alignment:1,heading:HeadingLevel.HEADING_1}),\n      new Paragraph({text:school?.address||String(content.alamatSekolah||""),alignment:1}),\n      new Paragraph({text:school?.npsn?`NPSN: ${school.npsn}`:"",alignment:1}),
       new Paragraph({text:device.title,heading:HeadingLevel.TITLE}),
       new Paragraph({children:[new TextRun({text:"GuruWali • Perangkat Ajar",bold:true})]}),
       new Paragraph({text:`Mata Pelajaran: ${device.subjectName||"-"} | Kelas: ${device.className||"-"} | Tahun Ajaran: ${device.academicYear||"-"}`}),
