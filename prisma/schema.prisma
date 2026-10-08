@@ -51,7 +51,7 @@ model School {
   npsn            String?            @unique
   address         String?
   logoPath        String?
-  principalName   String?
+  principalName   String?\n  principalNip    String?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   memberships     SchoolMembership[]
