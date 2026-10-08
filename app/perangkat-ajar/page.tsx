@@ -30,6 +30,7 @@ export default function PerangkatPage(){
    if(key==="objectiveId"){next.sequenceId="";next.materialId=""}
    if(key==="sequenceId"){next.materialId=""}
    if(key==="subjectId"){const subject=(refs.subjects||[]).find((x:any)=>x.id===v); if(subject) next.subjectName=subject.name}
+   if(key==="phaseId"){const phase=(refs.phases||[]).find((x:any)=>x.id===v); if(phase) next.content={...(form.content||{}),fase:phase.name};}
    setForm((f:any)=>({...f,...next}));
  };
  const set=(k:string,v:any)=>setForm((f:any)=>({...f,[k]:v}));const setContent=(k:string,v:string)=>setForm((f:any)=>({...f,content:{...(f.content||{}),[k]:v}}));
@@ -41,7 +42,7 @@ export default function PerangkatPage(){
  <section className="paCard"><div className="paHead"><div><h2>Referensi Master Kurikulum</h2><p className="muted">Pilih CP, TP, ATP, dan Materi yang menjadi dasar perangkat.</p></div><span className="masterPill">MASTER PLATFORM ⭐</span></div><div className="formGrid">
  <label>Kurikulum<select value={form.curriculumId||""} onChange={e=>choose("curriculumId",e.target.value)}><option value="">Pilih Kurikulum</option>{(refs.curricula||[]).map((x:any)=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
  <label>Fase<select value={form.phaseId||""} disabled={!form.curriculumId} onChange={e=>choose("phaseId",e.target.value)}><option value="">{form.curriculumId?"Pilih Fase":"Pilih Kurikulum dahulu"}</option>{filteredPhases.map((x:any)=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>\n <label>Mata Pelajaran<select value={form.subjectId||""} disabled={!form.phaseId} onChange={e=>choose("subjectId",e.target.value)}><option value="">{form.phaseId?"Pilih Mata Pelajaran":"Pilih Fase dahulu"}</option>{filteredSubjects.map((x:any)=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
- <label>CP Master<select value={form.outcomeId||""} disabled={!form.phaseId} onChange={e=>choose("outcomeId",e.target.value)}><option value="">{form.phaseId?"Pilih CP":"Pilih Fase dahulu"}</option>{filteredCP.map((x:any)=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
+ <label>CP Master<select value={form.outcomeId||""} disabled={!form.subjectId} onChange={e=>choose("outcomeId",e.target.value)}><option value="">{form.subjectId?"Pilih CP":"Pilih Mata Pelajaran dahulu"}</option>{filteredCP.map((x:any)=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
  <label>TP<select value={form.objectiveId||""} disabled={!form.outcomeId} onChange={e=>choose("objectiveId",e.target.value)}><option value="">{form.outcomeId?"Pilih TP":"Pilih CP dahulu"}</option>{filteredTP.map((x:any)=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
  <label>ATP<select value={form.sequenceId||""} disabled={!form.objectiveId} onChange={e=>choose("sequenceId",e.target.value)}><option value="">{form.objectiveId?"Pilih ATP":"Pilih TP dahulu"}</option>{filteredATP.map((x:any)=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
  <label>Materi<select value={form.materialId||""} disabled={!form.sequenceId} onChange={e=>choose("materialId",e.target.value)}><option value="">{form.sequenceId?"Pilih Materi":"Pilih ATP dahulu"}</option>{filteredMaterials.map((x:any)=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
