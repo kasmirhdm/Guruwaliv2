@@ -60,7 +60,7 @@ function parseStudents(wb:XLSX.WorkBook){
   address:val(t.headers,r,["alamat","alamattinggal"]),
   parentName:val(t.headers,r,["namaayah","namaibu","namaorangtua","namaibukandung"]),
   parentPhone:val(t.headers,r,["nohporangtua","nohpibu","nohpayah","nomorhporangtua"]),
-  className:val(t.headers,r,["rombel","rombonganbelajar","kelas"])
+  className:val(t.headers,r,["rombel","rombonganbelajar","kelas"]),homeroomTeacherName:val(t.headers,r,["walikelas","namawalikelas","guruwalikelas"])
  })).filter(x=>x.name);
 }
 
@@ -72,7 +72,7 @@ export async function POST(req:NextRequest){
   const wb=XLSX.read(await file.arrayBuffer(),{type:"array"});
   const students=parseStudents(wb),teachers=parseTeachers(wb);
   if(!students.length&&!teachers.length)return NextResponse.json({error:"Data Peserta Didik/PTK tidak ditemukan pada workbook ini."},{status:422});
-  const classes=await prisma.schoolClass.findMany({where:{schoolId:schoolId!},include:{homeroomTeacher:{select:{id:true,name:true,email:true}}}});
+  const [classes,activeTeachers]=await Promise.all([prisma.schoolClass.findMany({where:{schoolId:schoolId!},include:{homeroomTeacher:{select:{id:true,name:true,email:true}}}}),prisma.schoolMembership.findMany({where:{schoolId:schoolId!,status:"ACTIVE",role:"TEACHER"},select:{userId:true,user:{select:{id:true,name:true,email:true}}}})]);
   if(mode==="preview")return NextResponse.json({
    sheets:wb.SheetNames,
    summary:{students:students.length,teachers:teachers.length},
@@ -81,6 +81,7 @@ export async function POST(req:NextRequest){
    classes:classes.map(x=>({id:x.id,name:x.name,grade:x.grade,homeroomTeacher:x.homeroomTeacher}))
   });
   const classMap=new Map(classes.map(x=>[norm(x.name),x]));
+  const teacherMap=new Map(activeTeachers.map(x=>[norm(x.user.name),x.user]));
   const importedTeachers=[];
   for(const t of teachers){
    const where=t.nuptk?{schoolId:schoolId!,nuptk:t.nuptk}:null;
@@ -94,11 +95,12 @@ export async function POST(req:NextRequest){
    let cls=s.className?classMap.get(norm(s.className)):undefined;
    if(!cls&&s.className){
     const grade=gradeOf(s.className);
-    const createdClass=await prisma.schoolClass.create({data:{schoolId:schoolId!,name:s.className,grade}});
+    const matchedTeacher=s.homeroomTeacherName?teacherMap.get(norm(s.homeroomTeacherName)):undefined;
+    const createdClass=await prisma.schoolClass.create({data:{schoolId:schoolId!,name:s.className,grade,homeroomTeacherId:matchedTeacher?.id||null}});
     cls={...createdClass,homeroomTeacher:null};classMap.set(norm(s.className),cls);createdClasses++;
    }
-   if(cls)matchedClass++;else if(s.className)unmatchedClass++;
-   const teacherName=val([],[],[]);
+   if(cls){matchedClass++; if(s.homeroomTeacherName&&!cls.homeroomTeacherId){const matchedTeacher=teacherMap.get(norm(s.homeroomTeacherName)); if(matchedTeacher) {await prisma.schoolClass.update({where:{id:cls.id},data:{homeroomTeacherId:matchedTeacher.id}}); cls={...cls,homeroomTeacher:{id:matchedTeacher.id,name:matchedTeacher.name,email:matchedTeacher.email}};}}}else if(s.className)unmatchedClass++;
+   
    const existing=await prisma.student.findFirst({where:{schoolId:schoolId!,OR:[
     ...(s.nisn?[{nisn:s.nisn}]:[]),...(s.nik?[{nik:s.nik}]:[]),{name:s.name!}
    ]},orderBy:{updatedAt:"desc"}});
