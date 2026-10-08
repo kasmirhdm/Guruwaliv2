@@ -94,13 +94,28 @@ model SchoolClass {
   @@index([schoolId])
 }
 
+model MasterSubject {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  code        String?
+  isActive    Boolean   @default(true)
+  subjects    Subject[]
+  outcomes    LearningOutcome[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  @@index([isActive])
+}
+
 model Subject {
-  id        String   @id @default(cuid())
-  schoolId  String
-  name      String
-  code      String?
-  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id              String         @id @default(cuid())
+  schoolId        String
+  masterSubjectId String?
+  name            String
+  code            String?
+  school          School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  masterSubject   MasterSubject? @relation(fields: [masterSubjectId], references: [id], onDelete: SetNull)
   @@index([schoolId])
+  @@index([masterSubjectId])
 }
 
 model Curriculum {
@@ -111,6 +126,7 @@ model Curriculum {
   sourceType  CurriculumSource     @default(PLATFORM_MASTER)
   school      School?             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   phases      Phase[]
+  outcomes    LearningOutcome[]
   @@index([schoolId, sourceType])
 }
 
@@ -128,6 +144,7 @@ model LearningOutcome {
   curriculumId String
   phaseId      String
   subjectId    String?
+  masterSubjectId String?
   title        String
   content      String
   sourceType   CurriculumSource  @default(PLATFORM_MASTER)
@@ -135,8 +152,10 @@ model LearningOutcome {
   isActive     Boolean           @default(true)
   curriculum   Curriculum       @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
   phase        Phase             @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  masterSubject MasterSubject?    @relation(fields: [masterSubjectId], references: [id], onDelete: SetNull)
   objectives   LearningObjective[]
   @@index([curriculumId, phaseId, subjectId])
+  @@index([masterSubjectId, isMaster])
 }
 
 model LearningObjective {
