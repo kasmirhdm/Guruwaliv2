@@ -54,6 +54,7 @@ model User {
   sessions     Session[]
   ownedDocuments Document[]    @relation("DocumentOwner")
   teachingDevices TeachingDevice[]
+  homeroomClasses SchoolClass[] @relation("HomeroomTeacher")
 }
 
 model School {
@@ -103,6 +104,7 @@ model SchoolClass {
   schoolId  String
   name      String
   grade     String?
+  homeroomTeacherId String?
   school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   @@index([schoolId])
 }
