@@ -9,7 +9,8 @@ export async function GET(){
   prisma.schoolMembership.count({where:{schoolId:schoolId!,status:"ACTIVE",role:"TEACHER"}}),
   prisma.schoolClass.count({where:{schoolId:schoolId!}}),
   prisma.teachingDevice.count({where:{schoolId:schoolId!}}),
-  prisma.schoolMembership.count({where:{schoolId:schoolId!,status:"PENDING"}})
+  prisma.schoolMembership.count({where:{schoolId:schoolId!,status:"PENDING"}}),
+  prisma.student.count({where:{schoolId:schoolId!}})
  ]);
- return NextResponse.json({school,guru,kelas,devices,pending});
+ return NextResponse.json({school,guru,kelas,devices,pending,siswa});
 }
