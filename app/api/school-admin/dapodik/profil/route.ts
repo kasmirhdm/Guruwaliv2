@@ -53,6 +53,7 @@ export async function POST(req:NextRequest){
   const file=form.get("file");
   const mode=String(form.get("mode")||"preview");
   if(!(file instanceof File))return NextResponse.json({error:"File Profil Dapodik belum dipilih."},{status:400});
+  if(file.size>5*1024*1024)return NextResponse.json({error:"Ukuran file melebihi 5 MB."},{status:413});
   const name=file.name.toLowerCase();
   if(!name.endsWith(".xlsx")&&!name.endsWith(".xls"))return NextResponse.json({error:"Gunakan file Profil Dapodik Excel (.xlsx/.xls). File .prf bukan format import GuruWali."},{status:400});
   const profile=parseWorkbook(await file.arrayBuffer());

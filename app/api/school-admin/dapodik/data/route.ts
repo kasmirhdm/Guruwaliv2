@@ -69,6 +69,7 @@ export async function POST(req:NextRequest){
  try{
   const form=await req.formData(),file=form.get("file"),mode=String(form.get("mode")||"preview");
   if(!(file instanceof File))return NextResponse.json({error:"File Profil Dapodik belum dipilih."},{status:400});
+  if(file.size>5*1024*1024)return NextResponse.json({error:"Ukuran file melebihi 5 MB."},{status:413});
   const wb=XLSX.read(await file.arrayBuffer(),{type:"array"});
   const students=parseStudents(wb),teachers=parseTeachers(wb);
   if(!students.length&&!teachers.length)return NextResponse.json({error:"Data Peserta Didik/PTK tidak ditemukan pada workbook ini."},{status:422});

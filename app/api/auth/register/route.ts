@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 import { randomBytes, scryptSync } from "crypto";
+import { rateLimit, clientKey } from "../../../../lib/rate-limit";
 
 function hashPassword(password:string){
   const salt=randomBytes(16).toString("hex");
@@ -9,6 +10,8 @@ function hashPassword(password:string){
 }
 
 export async function POST(req:Request){
+  if(!rateLimit(`register:${clientKey(req)}`,10,60*60*1000))
+    return NextResponse.json({error:"Terlalu banyak pendaftaran dari alamat ini. Coba lagi nanti."},{status:429});
   const b=await req.json();
   const name=String(b.name||"").trim();
   const email=String(b.email||"").trim().toLowerCase();
