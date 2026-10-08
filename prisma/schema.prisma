@@ -108,6 +108,7 @@ model SchoolClass {
   homeroomTeacherId String?
   school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   homeroomTeacher User? @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id], onDelete: SetNull)
+  teachingDevices TeachingDevice[]
   @@index([schoolId])
   @@index([homeroomTeacherId])
 }
