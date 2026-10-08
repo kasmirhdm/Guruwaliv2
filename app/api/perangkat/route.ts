@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
+import { getCurrentUser } from "../../../lib/auth";
 
 export async function GET(req:Request){
-  const userId=new URL(req.url).searchParams.get("userId");
-  if(!userId)return NextResponse.json({error:"userId wajib diisi"},{status:400});
+  const user=await getCurrentUser();
+  if(!user)return NextResponse.json({error:"Anda harus login."},{status:401});
+  const requested=new URL(req.url).searchParams.get("userId");
+  const userId=user.role==="GURUWALI_ADMIN"&&requested?requested:user.id;
   return NextResponse.json(await prisma.teachingDevice.findMany({where:{ownerUserId:userId},orderBy:{updatedAt:"desc"}}));
 }
 
 export async function POST(req:Request){
+  const user=await getCurrentUser();
+  if(!user)return NextResponse.json({error:"Anda harus login."},{status:401});
   const b=await req.json();
+  b.ownerUserId=user.id;
   if(!b.ownerUserId||!b.type||!b.title)return NextResponse.json({error:"Pemilik, jenis dan judul wajib diisi"},{status:400});
 
   const content={...(b.content||{})};
