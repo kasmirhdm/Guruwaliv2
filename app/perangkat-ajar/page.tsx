@@ -10,13 +10,11 @@ export default function PerangkatPage(){
  const [type,setType]=useState("MODUL_AJAR");const [refs,setRefs]=useState<any>({});const [saving,setSaving]=useState(false);const [message,setMessage]=useState("");
  const [form,setForm]=useState<any>({ownerUserId:"demo-teacher",title:"",subjectName:"",className:"",academicYear:"2026/2027",content:{}});
  useEffect(()=>{Promise.all(Object.entries(api).map(async([k,u])=>[k,await fetch(u).then(r=>r.ok?r.json():[])] )).then(x=>setRefs(Object.fromEntries(x as any))).catch(()=>{})},[]);
- const selectedCP=(refs.outcomes||[]).find((x:any)=>x.id===form.outcomeId);
- const selectedTP=(refs.objectives||[]).find((x:any)=>x.id===form.objectiveId);
- const selectedATP=(refs.sequences||[]).find((x:any)=>x.id===form.sequenceId);
+
  const filteredPhases=(refs.phases||[]).filter((x:any)=>!form.curriculumId||x.curriculumId===form.curriculumId);
  const filteredCP=(refs.outcomes||[]).filter((x:any)=>
    (!form.phaseId||x.phaseId===form.phaseId) &&
-   (!selectedCP||x.curriculumId===form.curriculumId)
+   (!form.curriculumId||x.curriculumId===form.curriculumId)
  );
  const filteredTP=(refs.objectives||[]).filter((x:any)=>!form.outcomeId||x.outcomeId===form.outcomeId);
  const filteredATP=(refs.sequences||[]).filter((x:any)=>!form.objectiveId||x.objectiveId===form.objectiveId);
@@ -37,7 +35,7 @@ export default function PerangkatPage(){
  <div className="typeGrid">{types.map(([v,l])=><button className={type===v?"type active":"type"} onClick={()=>setType(v)} key={v}><FileText size={16}/>{l}</button>)}</div>
  <section className="paCard"><h2>Identitas Perangkat</h2><div className="formGrid"><label>Judul Perangkat<input value={form.title} onChange={e=>set("title",e.target.value)} placeholder="Contoh: Modul Ajar Persamaan Kuadrat"/></label><label>Mata Pelajaran<input value={form.subjectName} onChange={e=>set("subjectName",e.target.value)} placeholder="Matematika"/></label><label>Kelas<input value={form.className} onChange={e=>set("className",e.target.value)} placeholder="IX"/></label><label>Tahun Ajaran<input value={form.academicYear} onChange={e=>set("academicYear",e.target.value)}/></label></div></section>
  <section className="paCard"><div className="paHead"><div><h2>Referensi Master Kurikulum</h2><p className="muted">Pilih CP, TP, ATP, dan Materi yang menjadi dasar perangkat.</p></div><span className="masterPill">MASTER PLATFORM ⭐</span></div><div className="formGrid">
- {dropdown("Kurikulum","curriculumId",refs.curricula||[])}
+ <label>Kurikulum<select value={form.curriculumId||""} onChange={e=>choose("curriculumId",e.target.value)}><option value="">Pilih Kurikulum</option>{(refs.curricula||[]).map((x:any)=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
  <label>Fase<select value={form.phaseId||""} disabled={!form.curriculumId} onChange={e=>choose("phaseId",e.target.value)}><option value="">{form.curriculumId?"Pilih Fase":"Pilih Kurikulum dahulu"}</option>{filteredPhases.map((x:any)=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
  <label>CP Master<select value={form.outcomeId||""} disabled={!form.phaseId} onChange={e=>choose("outcomeId",e.target.value)}><option value="">{form.phaseId?"Pilih CP":"Pilih Fase dahulu"}</option>{filteredCP.map((x:any)=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
  <label>TP<select value={form.objectiveId||""} disabled={!form.outcomeId} onChange={e=>choose("objectiveId",e.target.value)}><option value="">{form.outcomeId?"Pilih TP":"Pilih CP dahulu"}</option>{filteredTP.map((x:any)=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
