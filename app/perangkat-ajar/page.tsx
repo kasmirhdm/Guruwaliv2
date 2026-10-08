@@ -1,5 +1,5 @@
-import "./page.css";
 "use client";
+import "./page.css";
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import {ArrowLeft,BookOpen,FileText,Save,ChevronRight,Target,Route,Layers} from "lucide-react";
@@ -41,7 +41,7 @@ export default function PerangkatPage(){
  };
  const set=(k:string,v:any)=>setForm((f:any)=>({...f,[k]:v}));const setContent=(k:string,v:string)=>setForm((f:any)=>({...f,content:{...(f.content||{}),[k]:v}}));
  async function save(){setSaving(true);setMessage("");try{const r=await fetch("/api/perangkat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...form,type})});const d=await r.json();setMessage(r.ok?"Modul berhasil disimpan sebagai draft.":d.error||"Gagal menyimpan.");}catch{setMessage("Tidak dapat terhubung ke server.")}finally{setSaving(false)}}
- const dropdown=(label:string,key:string,list:any[])=> <label>{label}<select value={form[key]||""} onChange={e=>set(key,e.target.value)}><option value="">Pilih {label}</option>{list.map(x=><option key={x.id} value={x.id}>{x.name||x.title||x.content?.slice(0,70)}</option>)}</label>;
+ const dropdown=(label:string,key:string,list:any[])=> <label>{label}<select value={form[key]||""} onChange={e=>set(key,e.target.value)}><option value="">Pilih {label}</option>{list.map(x=><option key={x.id} value={x.id}>{x.name||x.title||x.content?.slice(0,70)}</option>)}</select></label>;
  return <main className="paShell"><header className="paTop"><div><Link href="/" className="back"><ArrowLeft size={16}/> Kembali ke Beranda</Link><p className="eyebrow">PERANGKAT AJAR</p><h1>Buat Perangkat Ajar</h1><p className="muted">Bangun perangkat berdasarkan Kurikulum Sekolah dan kelas yang dikelola Admin Sekolah.</p></div><div className="paBadge"><BookOpen size={18}/> Guru • Matematika</div></header>
  <div className="typeGrid">{types.map(([v,l])=><button className={type===v?"type active":"type"} onClick={()=>setType(v)} key={v}><FileText size={16}/>{l}</button>)}</div>
  <section className="paCard"><h2>Identitas Perangkat</h2><div className="formGrid"><label>Judul Perangkat<input value={form.title} onChange={e=>set("title",e.target.value)} placeholder="Contoh: Modul Ajar Persamaan Kuadrat"/></label><label>Mata Pelajaran<input value={form.subjectName} onChange={e=>set("subjectName",e.target.value)} placeholder="Matematika"/></label><label>Kelas<select value={form.schoolClassId||""} onChange={e=>{const v=e.target.value;const cls=(refs.classes||[]).find((x:any)=>x.id===v);setForm((f:any)=>({...f,schoolClassId:v,className:cls?`${cls.grade||""} ${cls.name}`.trim():""}))}}><option value="">Pilih Kelas</option>{(refs.classes||[]).map((x:any)=><option key={x.id} value={x.id}>{x.grade?x.grade+" • ":""}{x.name}{x.homeroomTeacherId===form.userId?" • Wali Kelas":""}</option>)}</select></label><label>Tahun Ajaran<input value={form.academicYear} onChange={e=>set("academicYear",e.target.value)}/></label></div></section>

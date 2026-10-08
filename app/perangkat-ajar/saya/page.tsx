@@ -1,5 +1,5 @@
-import "./page.css";
 "use client";
+import "./page.css";
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import {ArrowLeft,FileText,Plus,ChevronRight} from "lucide-react";

@@ -1,5 +1,5 @@
-import "./admin.css";
 "use client";
+import "./admin.css";
 import Link from "next/link";
 import { LayoutDashboard, School, Users, BookOpen, FileText, Activity, Settings, ShieldCheck, ChevronRight } from "lucide-react";
 const menus=[["Dashboard",LayoutDashboard,"/admin"],["Sekolah",School,"/admin/sekolah"],["Permintaan Guru",Users,"/admin/sekolah/permintaan"],["Pengguna",Users,"/admin/pengguna"],["Master Kurikulum",BookOpen,"/admin/master-kurikulum"],["Template",FileText,"/admin/template"],["Aktivitas",Activity,"/admin/aktivitas"],["Pengaturan",Settings,"/admin/pengaturan"]];
