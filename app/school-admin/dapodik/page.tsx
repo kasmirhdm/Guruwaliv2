@@ -43,7 +43,7 @@ export default function DapodikPage(){
    <h1>Import Profil Dapodik</h1>
    <p className="muted">Ambil file Excel <b>Profil</b> dari Dapodik lalu GuruWali mengisi identitas sekolah secara otomatis.</p>
   </header>
-  <section className="saCard" style={{maxWidth:1050,margin:"22px auto"}}>
+  <div style={{marginBottom:14}}><Link href="/school-admin/dapodik/data" style={{display:"inline-flex",alignItems:"center",gap:7,color:"#15916c",fontWeight:700,fontSize:11,textDecoration:"none"}}>→ Import Guru, Siswa & Rombel Dapodik</Link></div><section className="saCard" style={{maxWidth:1050,margin:"22px auto"}}>
    <div style={{display:"flex",gap:12,alignItems:"flex-start",padding:14,borderRadius:11,background:"#f1faf6"}}>
     <Database size={22} color="#15916c"/>
     <div><b style={{fontSize:13}}>Sumber resmi Dapodik</b><p style={{fontSize:10,color:"#627174",margin:"4px 0 0"}}>Di Aplikasi Dapodik buka <b>Pusat Unduhan → Manajemen → Profil</b>. File Profil yang diunduh berbentuk Excel.</p></div>
