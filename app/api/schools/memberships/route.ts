@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
 async function schoolForAdmin(userId:string){
-  return prisma.schoolMembership.findFirst({where:{userId,status:"ACTIVE",role:"SCHOOL_ADMIN"},select:{schoolId:true}});
+  return prisma.schoolMembership.findFirst({where:{userId,status:"ACTIVE"},select:{schoolId:true}});
 }
 export async function GET(){
   const user=await getCurrentUser();
