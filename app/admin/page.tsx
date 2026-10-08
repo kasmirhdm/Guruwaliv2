@@ -1,3 +1,4 @@
+import "./admin.css";
 "use client";
 import Link from "next/link";
 import { LayoutDashboard, School, Users, BookOpen, FileText, Activity, Settings, ShieldCheck, ChevronRight } from "lucide-react";
