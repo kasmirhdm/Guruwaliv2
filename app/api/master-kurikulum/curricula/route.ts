@@ -7,7 +7,7 @@ export async function GET(){const guard=await requireRole(["GURUWALI_ADMIN"]);if
   return NextResponse.json(data);
 }
 export async function POST(req:Request){
-  const boconst guard=await requireRole(["GURUWALI_ADMIN"]);if(guard.response)return guard.response;
+  const bodyconst guard=await requireRole(["GURUWALI_ADMIN"]);if(guard.response)return guard.response;
   const body=await req.json();
   if(!body.name?.trim()) return NextResponse.json({error:"Nama kurikulum wajib diisi"},{status:400});
   const data=await prisma.curriculum.create({data:{name:body.name.trim(),description:body.description||null,sourceType:"PLATFORM_MASTER"}});
