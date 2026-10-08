@@ -1,0 +1,12 @@
+"use client";
+import {useEffect,useState} from "react";
+import Link from "next/link";
+import {ArrowLeft,Save,FileText} from "lucide-react";
+export default function EditPerangkat({params}:{params:Promise<{id:string}>}){
+ const [id,setId]=useState(""); const [data,setData]=useState<any>(null); const [saving,setSaving]=useState(false); const [msg,setMsg]=useState("");
+ useEffect(()=>{params.then(p=>{setId(p.id);fetch("/api/perangkat/"+p.id).then(r=>r.ok?r.json():null).then(setData)})},[params]);
+ const set=(k:string,v:string)=>setData((x:any)=>({...x,[k]:v}));
+ async function save(){setSaving(true);const r=await fetch("/api/perangkat/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});setSaving(false);setMsg(r.ok?"Perubahan berhasil disimpan.":"Gagal menyimpan perubahan.")}
+ if(!data)return <main className="editShell"><p>Memuat perangkat...</p></main>;
+ return <main className="editShell"><header><Link href="/perangkat-ajar/saya" className="back"><ArrowLeft size={16}/> Perangkat Ajar Saya</Link><p className="eyebrow">EDITOR PERANGKAT</p><h1>{data.title||"Perangkat Ajar"}</h1><p className="muted">{data.type.replaceAll("_"," ")} • Status {data.status}</p></header><section className="editCard"><div className="meta"><FileText size={20}/><div><b>Informasi Perangkat</b><span>Edit perangkat dan simpan kembali sebagai draft.</span></div></div><div className="grid"><label>Judul<input value={data.title||""} onChange={e=>set("title",e.target.value)}/></label><label>Mata Pelajaran<input value={data.subjectName||""} onChange={e=>set("subjectName",e.target.value)}/></label><label>Kelas<input value={data.className||""} onChange={e=>set("className",e.target.value)}/></label><label>Tahun Ajaran<input value={data.academicYear||""} onChange={e=>set("academicYear",e.target.value)}/></label></div><label className="full">Isi / Catatan<textarea value={typeof data.content==="string"?data.content:JSON.stringify(data.content||{},null,2)} onChange={e=>set("content",e.target.value)}/></label><div className="actions"><button className="save" disabled={saving} onClick={save}><Save size={16}/>{saving?"Menyimpan...":"Simpan Perubahan"}</button>{msg&&<span>{msg}</span>}</div></section></main>;
+}
