@@ -120,6 +120,19 @@ model Subject {
   @@index([masterSubjectId])
 }
 
+model MasterCurriculumRevision {
+  id           String   @id @default(cuid())
+  curriculumId String
+  version      Int
+  label        String?
+  snapshot     Json
+  createdById  String?
+  createdAt    DateTime @default(now())
+  curriculum   Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  @@unique([curriculumId, version])
+  @@index([curriculumId, createdAt])
+}
+
 model Curriculum {
   id          String              @id @default(cuid())
   schoolId    String?
@@ -129,6 +142,7 @@ model Curriculum {
   school      School?             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   phases      Phase[]
   outcomes    LearningOutcome[]
+  revisions   MasterCurriculumRevision[]
   @@index([schoolId, sourceType])
 }
 
