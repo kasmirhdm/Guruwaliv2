@@ -56,6 +56,7 @@ model User {
   teachingDevices TeachingDevice[]
   homeroomClasses SchoolClass[] @relation("HomeroomTeacher")
   gradeEntries GradeEntry[] @relation("TeacherGrades")
+  questions Question[]
 }
 
 model School {
@@ -79,6 +80,7 @@ model School {
   importedTeachers ImportedTeacher[]
   dapodikImports DapodikImportLog[]
   reportPeriods ReportPeriod[]
+  questions Question[]
 }
 
 model SchoolMembership {
@@ -377,6 +379,29 @@ model ReportNote {
   student   Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
   @@unique([periodId, studentId, category])
   @@index([studentId, periodId])
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  ownerUserId String
+  schoolId    String?
+  subjectName String
+  outcomeId   String?
+  objectiveId String?
+  sequenceId  String?
+  materialId  String?
+  type        String   @default("PILIHAN_GANDA")
+  question    String
+  options     Json?
+  answer      String
+  explanation String?
+  difficulty  String   @default("SEDANG")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  owner       User     @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  school      School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  @@index([ownerUserId])
+  @@index([schoolId, subjectName])
 }
 
 model DapodikImportLog {

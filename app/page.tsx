@@ -12,6 +12,7 @@ const menus=[
  {label:"Kurikulum",icon:GraduationCap,href:"/perangkat-ajar"},
  {label:"Wali Kelas",icon:Users,href:"/wali-kelas"},
  {label:"Penilaian",icon:ClipboardCheck,href:"/penilaian"},
+ {label:"Bank Soal",icon:BookOpen,href:"/bank-soal"},
  {label:"Pengaturan",icon:Settings}
 ];
 
