@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
+import { requireRole } from "../../../../lib/require-auth";
 import { prisma } from "../../../../lib/prisma";
 export async function GET(req:Request){
+  const p=const guard=await requireRole(["GURUWALI_ADMIN"]);if(guard.response)return guard.response;
   const p=new URL(req.url).searchParams;
   const curriculumId=p.get("curriculumId"); const phaseId=p.get("phaseId"); const masterSubjectId=p.get("masterSubjectId");
   return NextResponse.json(await prisma.learningOutcome.findMany({where:{isMaster:true,sourceType:"PLATFORM_MASTER",...(curriculumId?{curriculumId}:{}),...(phaseId?{phaseId}:{}),...(masterSubjectId?{masterSubjectId}:{})},include:{phase:true,masterSubject:true},orderBy:{createdAt:"desc"}}));
 }
 export async function POST(req:Request){
+  const boconst guard=await requireRole(["GURUWALI_ADMIN"]);if(guard.response)return guard.response;
   const body=await req.json();
   if(!body.curriculumId||!body.phaseId||!body.masterSubjectId||!body.title||!body.content)return NextResponse.json({error:"Kurikulum, fase, mata pelajaran, judul dan isi CP wajib diisi"},{status:400});
   const phase=await prisma.phase.findFirst({where:{id:body.phaseId,curriculumId:body.curriculumId}});
