@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  GURUWALI_ADMIN
+  SCHOOL_ADMIN
+  TEACHER
+}
+
+enum TeacherMode {
+  INDIVIDUAL
+  SCHOOL
+}
+
+enum MembershipStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+enum CurriculumSource {
+  PLATFORM_MASTER
+  SCHOOL
+}
+
+model User {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  passwordHash String
+  name         String
+  role         UserRole        @default(TEACHER)
+  teacherMode  TeacherMode? 
+  status       String          @default("ACTIVE")
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  memberships  SchoolMembership[]
+  ownedDocuments Document[]    @relation("DocumentOwner")
+}
+
+model School {
+  id              String             @id @default(cuid())
+  name            String
+  npsn            String?            @unique
+  address         String?
+  logoPath        String?
+  principalName   String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  memberships     SchoolMembership[]
+  academicYears   AcademicYear[]
+  classes         SchoolClass[]
+  subjects        Subject[]
+  curricula       Curriculum[]
+  documents       Document[]
+}
+
+model SchoolMembership {
+  id        String           @id @default(cuid())
+  schoolId  String
+  userId    String
+  role      UserRole
+  status    MembershipStatus @default(PENDING)
+  joinedAt  DateTime?
+  createdAt DateTime         @default(now())
+  school    School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([schoolId, userId])
+  @@index([userId, status])
+}
+
+model AcademicYear {
+  id        String   @id @default(cuid())
+  schoolId  String
+  name      String
+  semester  String
+  isActive  Boolean  @default(false)
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  @@index([schoolId, isActive])
+}
+
+model SchoolClass {
+  id        String   @id @default(cuid())
+  schoolId  String
+  name      String
+  grade     String?
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  @@index([schoolId])
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  schoolId  String
+  name      String
+  code      String?
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  @@index([schoolId])
+}
+
+model Curriculum {
+  id          String              @id @default(cuid())
+  schoolId    String?
+  name        String
+  description String?
+  sourceType  CurriculumSource     @default(PLATFORM_MASTER)
+  school      School?             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  phases      Phase[]
+  @@index([schoolId, sourceType])
+}
+
+model Phase {
+  id           String       @id @default(cuid())
+  curriculumId String
+  name         String
+  curriculum   Curriculum   @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  outcomes     LearningOutcome[]
+  @@index([curriculumId])
+}
+
+model LearningOutcome {
+  id           String            @id @default(cuid())
+  curriculumId String
+  phaseId      String
+  subjectId    String?
+  title        String
+  content      String
+  sourceType   CurriculumSource  @default(PLATFORM_MASTER)
+  isMaster     Boolean           @default(false)
+  isActive     Boolean           @default(true)
+  curriculum   Curriculum       @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  phase        Phase             @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  objectives   LearningObjective[]
+  @@index([curriculumId, phaseId, subjectId])
+}
+
+model LearningObjective {
+  id         String           @id @default(cuid())
+  outcomeId  String
+  title      String
+  content    String
+  outcome    LearningOutcome   @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
+  sequences  LearningSequence[]
+}
+
+model LearningSequence {
+  id          String            @id @default(cuid())
+  objectiveId String
+  title       String
+  content     String
+  objective   LearningObjective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  ownerUserId String
+  schoolId    String?
+  type        String
+  title       String
+  filePath    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  owner       User     @relation("DocumentOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  school      School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  @@index([ownerUserId])
+  @@index([schoolId])
+}
