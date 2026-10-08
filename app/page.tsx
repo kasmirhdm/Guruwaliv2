@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { BookOpen, FileText, GraduationCap, LayoutDashboard, Settings, Users, ClipboardCheck, ChevronRight, School, LogOut } from "lucide-react";
 
 const menus = [
@@ -17,7 +18,7 @@ export default function Home(){
   return <main className="shell">
     <aside className="sidebar">
       <div className="brand"><div className="brandMark">G</div><div><b>GuruWali</b><span>Platform Guru V2</span></div></div>
-      <div className="schoolMini"><School size={18}/><div><b>SMPN 1 Sungai Batang</b><span>2026/2027 • Ganjil</span></div></div>
+      <div className="schoolMini"><School size={18}/><div><b>SMPN 1 Sungai Batang</b><span>2026/2027 • Ganjil</span></div></div><Link href="/sekolah" className="schoolJoin"><School size={15}/> Gabung / Kelola Sekolah</Link>
       <nav>{menus.map(m=>{const Icon=m.icon; return <button key={m.label} className={active===m.label?"nav active":"nav"} onClick={()=>setActive(m.label)}><Icon size={19}/><span>{m.label}</span>{active===m.label&&<ChevronRight size={16} className="navArrow"/>}</button>})}</nav>
       <div className="sidebarBottom"><button className="nav"><LogOut size={19}/><span>Keluar</span></button></div>
     </aside>
