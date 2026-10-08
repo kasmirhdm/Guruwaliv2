@@ -25,7 +25,7 @@ export async function snapshotMasterCurriculum(curriculumId:string,label?:string
       curriculumId,
       version:(last?.version||0)+1,
       label:label||null,
-      snapshot:curriculum
+      snapshot:JSON.parse(JSON.stringify(curriculum))
     }
   });
 }
