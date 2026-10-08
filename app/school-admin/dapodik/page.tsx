@@ -1,5 +1,5 @@
 "use client";
-import {useState} from "react";
+import {useEffect,useState} from "react";
 import Link from "next/link";
 import {ArrowLeft,Database,Upload,CheckCircle2,AlertCircle,FileSpreadsheet} from "lucide-react";
 import "../school-admin.css";
@@ -16,6 +16,8 @@ export default function DapodikPage(){
  const [current,setCurrent]=useState<Profile|null>(null);
  const [busy,setBusy]=useState(false);
  const [msg,setMsg]=useState("");
+ const [history,setHistory]=useState<any[]>([]);
+ useEffect(()=>{fetch("/api/school-admin/dapodik/history").then(r=>r.ok?r.json():[]).then(x=>setHistory(Array.isArray(x)?x:[]))},[msg]);
  const [error,setError]=useState("");
 
  async function preview(){
