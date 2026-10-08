@@ -54,7 +54,8 @@ model User {
   sessions     Session[]
   ownedDocuments Document[]    @relation("DocumentOwner")
   teachingDevices TeachingDevice[]
-  homeroomClasses SchoolClass[] @relation("HomeroomTeacher")\n  gradeEntries GradeEntry[] @relation("TeacherGrades")
+  homeroomClasses SchoolClass[] @relation("HomeroomTeacher")
+  gradeEntries GradeEntry[] @relation("TeacherGrades")
 }
 
 model School {
@@ -76,7 +77,8 @@ model School {
   teachingDevices TeachingDevice[]
   students        Student[]
   importedTeachers ImportedTeacher[]
-  dapodikImports DapodikImportLog[]\n  reportPeriods ReportPeriod[]
+  dapodikImports DapodikImportLog[]
+  reportPeriods ReportPeriod[]
 }
 
 model SchoolMembership {
@@ -137,6 +139,7 @@ model Subject {
   code            String?
   school          School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   masterSubject   MasterSubject? @relation(fields: [masterSubjectId], references: [id], onDelete: SetNull)
+  outcomes        LearningOutcome[]
   @@index([schoolId])
   @@index([masterSubjectId])
 }
@@ -187,9 +190,12 @@ model LearningOutcome {
   sourceType   CurriculumSource  @default(PLATFORM_MASTER)
   isMaster     Boolean           @default(false)
   isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
   curriculum   Curriculum       @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
   phase        Phase             @relation(fields: [phaseId], references: [id], onDelete: Cascade)
   masterSubject MasterSubject?    @relation(fields: [masterSubjectId], references: [id], onDelete: SetNull)
+  subject      Subject?          @relation(fields: [subjectId], references: [id], onDelete: SetNull)
   objectives   LearningObjective[]
   @@index([curriculumId, phaseId, subjectId])
   @@index([masterSubjectId, isMaster])
@@ -202,9 +208,9 @@ model LearningObjective {
   content    String
   outcome    LearningOutcome   @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
   sequences  LearningSequence[]
-  materials  LearningMaterial[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  @@index([outcomeId])
 }
 
 model LearningSequence {
@@ -213,8 +219,10 @@ model LearningSequence {
   title       String
   content     String
   objective   LearningObjective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  materials   LearningMaterial[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  @@index([objectiveId])
 }
 
 model LearningMaterial {
@@ -300,7 +308,9 @@ model Student {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  schoolClass SchoolClass? @relation(fields: [schoolClassId], references: [id], onDelete: SetNull)\n  grades GradeEntry[]\n  reportNotes ReportNote[]
+  schoolClass SchoolClass? @relation(fields: [schoolClassId], references: [id], onDelete: SetNull)
+  grades GradeEntry[]
+  reportNotes ReportNote[]
   @@index([schoolId, schoolClassId])
   @@index([schoolId, name])
   @@index([schoolId, nik])
