@@ -107,7 +107,9 @@ model SchoolClass {
   grade     String?
   homeroomTeacherId String?
   school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  homeroomTeacher User? @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id], onDelete: SetNull)
   @@index([schoolId])
+  @@index([homeroomTeacherId])
 }
 
 model MasterSubject {
@@ -246,12 +248,14 @@ model TeachingDevice {
   objectiveId       String?
   sequenceId        String?
   materialId        String?
+  schoolClassId     String?
   content           Json?
   status            String             @default("DRAFT")
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   owner             User               @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
   school            School?            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  schoolClass       SchoolClass?       @relation(fields: [schoolClassId], references: [id], onDelete: SetNull)
   @@index([ownerUserId, type])
   @@index([schoolId, type])
   @@index([outcomeId, objectiveId, sequenceId])
