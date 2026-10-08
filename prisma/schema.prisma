@@ -74,6 +74,8 @@ model School {
   curricula       Curriculum[]
   documents       Document[]
   teachingDevices TeachingDevice[]
+  students        Student[]
+  importedTeachers ImportedTeacher[]
 }
 
 model SchoolMembership {
@@ -109,6 +111,7 @@ model SchoolClass {
   school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   homeroomTeacher User? @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id], onDelete: SetNull)
   teachingDevices TeachingDevice[]
+  students        Student[]
   @@index([schoolId])
   @@index([homeroomTeacherId])
 }
@@ -275,4 +278,49 @@ model Document {
   school      School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   @@index([ownerUserId])
   @@index([schoolId])
+}
+
+model Student {
+  id          String      @id @default(cuid())
+  schoolId    String
+  schoolClassId String?
+  nis         String?
+  nisn        String?
+  nik         String?
+  name        String
+  gender      String?
+  birthPlace  String?
+  birthDate   DateTime?
+  address     String?
+  parentName  String?
+  parentPhone String?
+  status      String      @default("ACTIVE")
+  source      String      @default("MANUAL")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  schoolClass SchoolClass? @relation(fields: [schoolClassId], references: [id], onDelete: SetNull)
+  @@unique([schoolId, nisn])
+  @@index([schoolId, schoolClassId])
+  @@index([schoolId, name])
+  @@index([schoolId, nik])
+}
+
+model ImportedTeacher {
+  id          String   @id @default(cuid())
+  schoolId    String
+  name        String
+  nip         String?
+  nuptk       String?
+  nik         String?
+  email       String?
+  phone       String?
+  status      String   @default("IMPORTED")
+  source      String   @default("DAPODIK")
+  linkedUserId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  school      School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  @@unique([schoolId, nuptk])
+  @@index([schoolId, name])
 }
