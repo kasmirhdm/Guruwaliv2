@@ -42,6 +42,7 @@ model User {
   updatedAt    DateTime        @updatedAt
   memberships  SchoolMembership[]
   ownedDocuments Document[]    @relation("DocumentOwner")
+  teachingDevices TeachingDevice[]
 }
 
 model School {
@@ -59,6 +60,7 @@ model School {
   subjects        Subject[]
   curricula       Curriculum[]
   documents       Document[]
+  teachingDevices TeachingDevice[]
 }
 
 model SchoolMembership {
@@ -189,6 +191,42 @@ model LearningMaterial {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   @@index([sequenceId])
+}
+
+enum TeachingDeviceType {
+  MODUL_AJAR
+  LKPD
+  BAHAN_AJAR
+  ASESMEN
+  KISI_KISI
+  PROGRAM_SEMESTER
+  PROGRAM_TAHUNAN
+}
+
+model TeachingDevice {
+  id                String             @id @default(cuid())
+  ownerUserId       String
+  schoolId          String?
+  type              TeachingDeviceType
+  title             String
+  subjectName       String?
+  className         String?
+  academicYear      String?
+  curriculumId      String?
+  phaseId           String?
+  outcomeId         String?
+  objectiveId       String?
+  sequenceId        String?
+  materialId        String?
+  content           Json?
+  status            String             @default("DRAFT")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  owner             User               @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  school            School?            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  @@index([ownerUserId, type])
+  @@index([schoolId, type])
+  @@index([outcomeId, objectiveId, sequenceId])
 }
 
 model Document {
