@@ -1,13 +1,20 @@
-import "./page.css";
 "use client";
 import {useEffect,useState} from "react";
 import Link from "next/link";
-import {ArrowLeft,Save,FileText} from "lucide-react";
-export default function EditPerangkat({params}:{params:Promise<{id:string}>}){
- const [id,setId]=useState(""); const [data,setData]=useState<any>(null); const [saving,setSaving]=useState(false); const [msg,setMsg]=useState("");
- useEffect(()=>{params.then(p=>{setId(p.id);fetch("/api/perangkat/"+p.id).then(r=>r.ok?r.json():null).then(setData)})},[params]);
- const set=(k:string,v:string)=>setData((x:any)=>({...x,[k]:v}));
- async function save(){setSaving(true);const r=await fetch("/api/perangkat/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});setSaving(false);setMsg(r.ok?"Perubahan berhasil disimpan.":"Gagal menyimpan perubahan.")}
- if(!data)return <main className="editShell"><p>Memuat perangkat...</p></main>;
- return <main className="editShell"><header><Link href="/perangkat-ajar/saya" className="back"><ArrowLeft size={16}/> Perangkat Ajar Saya</Link><p className="eyebrow">EDITOR PERANGKAT</p><h1>{data.title||"Perangkat Ajar"}</h1><p className="muted">{data.type.replaceAll("_"," ")} • Status {data.status}</p></header><section className="editCard"><div className="meta"><FileText size={20}/><div><b>Informasi Perangkat</b><span>Edit perangkat dan simpan kembali sebagai draft.</span></div></div><div className="grid"><label>Judul<input value={data.title||""} onChange={e=>set("title",e.target.value)}/></label><label>Mata Pelajaran<input value={data.subjectName||""} onChange={e=>set("subjectName",e.target.value)}/></label><label>Kelas<input value={data.className||""} onChange={e=>set("className",e.target.value)}/></label><label>Tahun Ajaran<input value={data.academicYear||""} onChange={e=>set("academicYear",e.target.value)}/></label></div><label className="full">Isi / Catatan<textarea value={typeof data.content==="string"?data.content:JSON.stringify(data.content||{},null,2)} onChange={e=>set("content",e.target.value)}/></label><div className="actions"><button className="save" disabled={saving} onClick={save}><Save size={16}/>{saving?"Menyimpan...":"Simpan Perubahan"}</button>{msg&&<span>{msg}</span>}</div></section></main>;
+import {ArrowLeft,Eye,Save,FileText} from "lucide-react";
+import {useParams} from "next/navigation";
+import "./page.css";
+export default function DeviceEditor(){
+ const p=useParams();const [data,setData]=useState<any>(null);const [loading,setLoading]=useState(true);const [saving,setSaving]=useState(false);const [message,setMessage]=useState("");
+ useEffect(()=>{fetch("/api/perangkat/"+p.id).then(r=>r.json()).then(setData).finally(()=>setLoading(false))},[p.id]);
+ const update=(k:string,v:any)=>setData((d:any)=>({...d,[k]:v}));
+ const updateContent=(k:string,v:any)=>setData((d:any)=>({...d,content:{...(d.content||{}),[k]:v}}));
+ async function save(){setSaving(true);setMessage("");const r=await fetch("/api/perangkat/"+p.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:data.title,subjectName:data.subjectName,className:data.className,academicYear:data.academicYear,content:data.content})});setMessage(r.ok?"Perubahan tersimpan.":"Gagal menyimpan.");setSaving(false)}
+ if(loading)return <main className="deviceShell"><p>Memuat...</p></main>;
+ if(!data?.id)return <main className="deviceShell"><p>Perangkat tidak ditemukan.</p></main>;
+ const entries=Object.entries(data.content||{}).filter(([k,v])=>k!=="catatan"&&String(v||"").trim());
+ return <main className="deviceShell"><header className="deviceTop"><div><Link href="/perangkat-ajar/saya" className="back"><ArrowLeft size={16}/> Perangkat Ajar Saya</Link><p className="eyebrow">EDITOR PERANGKAT</p><h1>{data.title}</h1><p className="muted">{data.type} • {data.subjectName||"Belum diisi"} • Kelas {data.className||"-"}</p></div><div className="deviceActions"><button onClick={()=>document.getElementById("preview")?.scrollIntoView({behavior:"smooth"})}><Eye size={16}/> Preview</button><button className="primary" disabled={saving} onClick={save}><Save size={16}/>{saving?"Menyimpan":"Simpan"}</button></div></header>
+ <section className="editCard"><h2>Informasi Utama</h2><div className="editGrid"><label>Judul<input value={data.title||""} onChange={e=>update("title",e.target.value)}/></label><label>Mata Pelajaran<input value={data.subjectName||""} onChange={e=>update("subjectName",e.target.value)}/></label><label>Kelas<input value={data.className||""} onChange={e=>update("className",e.target.value)}/></label><label>Tahun Ajaran<input value={data.academicYear||""} onChange={e=>update("academicYear",e.target.value)}/></label></div></section>
+ <section className="editCard"><h2>Isi Perangkat</h2><div className="contentGrid">{entries.map(([key,value])=><label key={key}>{key.replace(/([A-Z])/g," $1")}<textarea value={String(value)} onChange={e=>updateContent(key,e.target.value)}/></label>)}</div><label>Catatan<textarea value={data.content?.catatan||""} onChange={e=>updateContent("catatan",e.target.value)}/></label>{message&&<p className="saved">{message}</p>}</section>
+ <section className="previewCard" id="preview"><div className="previewTitle"><FileText size={18}/><div><span>PREVIEW</span><h2>{data.title}</h2></div></div><div className="previewMeta">{data.subjectName&&<b>{data.subjectName}</b>} {data.className&&<>• Kelas {data.className}</>} {data.academicYear&&<>• {data.academicYear}</>}</div>{entries.map(([key,value])=><article key={key}><h3>{key.replace(/([A-Z])/g," $1")}</h3><p>{String(value)}</p></article>)}</section></main>
 }
