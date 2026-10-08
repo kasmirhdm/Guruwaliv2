@@ -6,7 +6,7 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
   const user=await getCurrentUser();
   if(!user)return NextResponse.json({error:"Anda harus login."},{status:401});
   if(user.role!=="SCHOOL_ADMIN")return NextResponse.json({error:"Akses ditolak."},{status:403});
-  const admin=await prisma.schoolMembership.findFirst({where:{userId:user.id,status:"ACTIVE",role:"SCHOOL_ADMIN"},select:{schoolId:true}});
+  const admin=await prisma.schoolMembership.findFirst({where:{userId:user.id,status:"ACTIVE"},select:{schoolId:true}});
   if(!admin)return NextResponse.json({error:"Admin Sekolah belum terhubung ke sekolah."},{status:403});
   const {id}=await params; const b=await req.json(); const status=b.status;
   if(status!=="ACTIVE"&&status!=="REJECTED")return NextResponse.json({error:"Status tidak valid."},{status:400});
