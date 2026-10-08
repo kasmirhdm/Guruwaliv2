@@ -30,6 +30,16 @@ enum CurriculumSource {
   SCHOOL
 }
 
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, expiresAt])
+}
+
 model User {
   id           String          @id @default(cuid())
   email        String          @unique
@@ -41,6 +51,7 @@ model User {
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   memberships  SchoolMembership[]
+  sessions     Session[]
   ownedDocuments Document[]    @relation("DocumentOwner")
   teachingDevices TeachingDevice[]
 }
