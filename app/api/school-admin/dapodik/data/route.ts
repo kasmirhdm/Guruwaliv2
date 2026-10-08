@@ -112,6 +112,7 @@ export async function POST(req:NextRequest){
    const data:any={schoolId:schoolId!,schoolClassId:cls?.id||null,nis:s.nis,nisn:s.nisn,nik:s.nik,name:s.name!,gender:s.gender,birthPlace:s.birthPlace,birthDate:s.birthDate,address:s.address,parentName:s.parentName,parentPhone:s.parentPhone,source:"DAPODIK",status:"ACTIVE"};
    if(existing){await prisma.student.update({where:{id:existing.id},data});updated++}else{await prisma.student.create({data});created++}
   }
-  await prisma.dapodikImportLog.create({data:{schoolId:schoolId!,fileName:file.name,studentsCreated:created,studentsUpdated:updated,teachersImported:importedTeachers.length,classesCreated:createdClasses,matchedClasses:matchedClass}});\n  return NextResponse.json({message:"Data Dapodik berhasil diimpor.",summary:{created,updated,teachers:importedTeachers.length,matchedClass,unmatchedClass,createdClasses}});
+  await prisma.dapodikImportLog.create({data:{schoolId:schoolId!,fileName:file.name,studentsCreated:created,studentsUpdated:updated,teachersImported:importedTeachers.length,classesCreated:createdClasses,matchedClasses:matchedClass}});
+  return NextResponse.json({message:"Data Dapodik berhasil diimpor.",summary:{created,updated,teachers:importedTeachers.length,matchedClass,unmatchedClass,createdClasses}});
  }catch(e){console.error("Dapodik people import:",e);return NextResponse.json({error:"Data Dapodik gagal diproses. Pastikan workbook berasal dari Dapodik."},{status:500})}
 }
