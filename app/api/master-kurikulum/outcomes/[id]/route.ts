@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { prisma } from "../../../../../lib/prisma";
+export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){const {id}=await params;const body=await req.json();return NextResponse.json(await prisma.learningOutcome.update({where:{id},data:{phaseId:body.phaseId,masterSubjectId:body.masterSubjectId??null,title:body.title,content:body.content,isActive:body.isActive??true}}))}
+export async function DELETE(_:Request,{params}:{params:Promise<{id:string}>}){const {id}=await params;await prisma.learningOutcome.update({where:{id},data:{isActive:false}});return NextResponse.json({ok:true})}
