@@ -47,3 +47,18 @@ ALTER TABLE "ImportedTeacher" ADD CONSTRAINT "ImportedTeacher_schoolId_fkey" FOR
 
 CREATE UNIQUE INDEX "Student_schoolId_nisn_not_null_key" ON "Student"("schoolId","nisn") WHERE "nisn" IS NOT NULL;
 CREATE UNIQUE INDEX "ImportedTeacher_schoolId_nuptk_not_null_key" ON "ImportedTeacher"("schoolId","nuptk") WHERE "nuptk" IS NOT NULL;
+
+CREATE TABLE "DapodikImportLog" (
+  "id" TEXT NOT NULL,
+  "schoolId" TEXT NOT NULL,
+  "fileName" TEXT NOT NULL,
+  "studentsCreated" INTEGER NOT NULL DEFAULT 0,
+  "studentsUpdated" INTEGER NOT NULL DEFAULT 0,
+  "teachersImported" INTEGER NOT NULL DEFAULT 0,
+  "classesCreated" INTEGER NOT NULL DEFAULT 0,
+  "matchedClasses" INTEGER NOT NULL DEFAULT 0,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "DapodikImportLog_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "DapodikImportLog_schoolId_createdAt_idx" ON "DapodikImportLog"("schoolId","createdAt");
+ALTER TABLE "DapodikImportLog" ADD CONSTRAINT "DapodikImportLog_schoolId_fkey" FOREIGN KEY ("schoolId") REFERENCES "School"("id") ON DELETE CASCADE ON UPDATE CASCADE;
