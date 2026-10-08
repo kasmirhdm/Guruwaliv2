@@ -54,7 +54,7 @@ model User {
   sessions     Session[]
   ownedDocuments Document[]    @relation("DocumentOwner")
   teachingDevices TeachingDevice[]
-  homeroomClasses SchoolClass[] @relation("HomeroomTeacher")
+  homeroomClasses SchoolClass[] @relation("HomeroomTeacher")\n  gradeEntries GradeEntry[] @relation("TeacherGrades")
 }
 
 model School {
@@ -76,7 +76,7 @@ model School {
   teachingDevices TeachingDevice[]
   students        Student[]
   importedTeachers ImportedTeacher[]
-  dapodikImports DapodikImportLog[]
+  dapodikImports DapodikImportLog[]\n  reportPeriods ReportPeriod[]
 }
 
 model SchoolMembership {
@@ -300,7 +300,7 @@ model Student {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  schoolClass SchoolClass? @relation(fields: [schoolClassId], references: [id], onDelete: SetNull)
+  schoolClass SchoolClass? @relation(fields: [schoolClassId], references: [id], onDelete: SetNull)\n  grades GradeEntry[]\n  reportNotes ReportNote[]
   @@index([schoolId, schoolClassId])
   @@index([schoolId, name])
   @@index([schoolId, nik])
@@ -322,6 +322,51 @@ model ImportedTeacher {
   updatedAt   DateTime @updatedAt
   school      School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   @@index([schoolId, name])
+}
+
+
+model ReportPeriod {
+  id           String   @id @default(cuid())
+  schoolId     String
+  academicYear String
+  semester     String
+  name         String
+  isActive     Boolean  @default(true)
+  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  grades       GradeEntry[]
+  notes        ReportNote[]
+  @@index([schoolId, academicYear, semester])
+}
+
+model GradeEntry {
+  id          String      @id @default(cuid())
+  periodId    String
+  studentId   String
+  subjectId   String?
+  subjectName String
+  teacherId   String?
+  knowledge   Float?
+  skill       Float?
+  finalScore  Float?
+  predicate   String?
+  description String?
+  period      ReportPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher     User?       @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  @@unique([periodId, studentId, subjectName])
+  @@index([studentId, periodId])
+}
+
+model ReportNote {
+  id        String       @id @default(cuid())
+  periodId  String
+  studentId String
+  category  String
+  note      String
+  period    ReportPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  student   Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@unique([periodId, studentId, category])
+  @@index([studentId, periodId])
 }
 
 model DapodikImportLog {
