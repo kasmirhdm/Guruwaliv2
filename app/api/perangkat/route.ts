@@ -10,20 +10,44 @@ export async function GET(req:Request){
 export async function POST(req:Request){
   const b=await req.json();
   if(!b.ownerUserId||!b.type||!b.title)return NextResponse.json({error:"Pemilik, jenis dan judul wajib diisi"},{status:400});
+
   const content={...(b.content||{})};
 
-  if(b.type==="MODUL_AJAR"){
-    const [cp,tp,atp,materi]=await Promise.all([
-      b.outcomeId?prisma.learningOutcome.findUnique({where:{id:b.outcomeId}}):null,
-      b.objectiveId?prisma.learningObjective.findUnique({where:{id:b.objectiveId}}):null,
-      b.sequenceId?prisma.learningSequence.findUnique({where:{id:b.sequenceId}}):null,
-      b.materialId?prisma.learningMaterial.findUnique({where:{id:b.materialId}}):null
-    ]);
-    if(cp)content.cp=cp.content||cp.title;
-    if(tp)content.tp=tp.content||tp.title;
-    if(atp)content.atp=atp.content||atp.title;
-    if(materi)content.materi=materi.content||materi.title;
-    if(!content.titleMateri && materi)content.titleMateri=materi.title;
+  if(b.curriculumId && b.phaseId){
+    const phase=await prisma.phase.findFirst({where:{id:b.phaseId,curriculumId:b.curriculumId}});
+    if(!phase)return NextResponse.json({error:"Fase tidak sesuai dengan kurikulum yang dipilih."},{status:400});
+  }
+
+  if(b.outcomeId){
+    const cp=await prisma.learningOutcome.findFirst({
+      where:{id:b.outcomeId,curriculumId:b.curriculumId||undefined,phaseId:b.phaseId||undefined,masterSubjectId:b.subjectId||undefined,isMaster:true,sourceType:"PLATFORM_MASTER"}
+    });
+    if(!cp)return NextResponse.json({error:"CP Master tidak sesuai dengan Kurikulum, Fase, atau Mata Pelajaran yang dipilih."},{status:400});
+    if(b.type==="MODUL_AJAR"){content.cp=cp.content||cp.title;}
+  }
+
+  if(b.objectiveId){
+    const tp=await prisma.learningObjective.findFirst({where:{id:b.objectiveId,outcomeId:b.outcomeId||undefined}});
+    if(!tp)return NextResponse.json({error:"TP tidak sesuai dengan CP yang dipilih."},{status:400});
+    if(b.type==="MODUL_AJAR")content.tp=tp.content||tp.title;
+  }
+
+  if(b.sequenceId){
+    const atp=await prisma.learningSequence.findFirst({where:{id:b.sequenceId,objectiveId:b.objectiveId||undefined}});
+    if(!atp)return NextResponse.json({error:"ATP tidak sesuai dengan TP yang dipilih."},{status:400});
+    if(b.type==="MODUL_AJAR")content.atp=atp.content||atp.title;
+  }
+
+  if(b.materialId){
+    const materi=await prisma.learningMaterial.findFirst({where:{id:b.materialId,sequenceId:b.sequenceId||undefined}});
+    if(!materi)return NextResponse.json({error:"Materi tidak sesuai dengan ATP yang dipilih."},{status:400});
+    if(b.type==="MODUL_AJAR"){content.materi=materi.content||materi.title;content.titleMateri=materi.title;}
+  }
+
+  if(b.type==="MODUL_AJAR" && (b.outcomeId || b.objectiveId || b.sequenceId || b.materialId)){
+    if(!b.curriculumId||!b.phaseId||!b.subjectId||!b.outcomeId||!b.objectiveId||!b.sequenceId||!b.materialId){
+      return NextResponse.json({error:"Untuk Modul Ajar, pilih lengkap: Kurikulum → Fase → Mata Pelajaran → CP → TP → ATP → Materi."},{status:400});
+    }
   }
 
   const device=await prisma.teachingDevice.create({data:{
